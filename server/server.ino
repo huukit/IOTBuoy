@@ -1,6 +1,6 @@
 /*
  * <copyright>
- * Copyright (c) 2016: Tuomas Huuki
+ * Copyright (c) 2017: Tuomas Huuki
  *
  * This file is free software; you can redistribute it and/or modify
  * it under the terms of either the GNU General Public License version 2
