@@ -167,9 +167,9 @@
   <widget class="QLineEdit" name="lineT1">
    <property name="geometry">
     <rect>
-     <x>20</x>
-     <y>320</y>
-     <width>41</width>
+     <x>150</x>
+     <y>290</y>
+     <width>51</width>
      <height>20</height>
     </rect>
    </property>
@@ -177,9 +177,9 @@
   <widget class="QLineEdit" name="lineT2">
    <property name="geometry">
     <rect>
-     <x>70</x>
-     <y>320</y>
-     <width>41</width>
+     <x>210</x>
+     <y>290</y>
+     <width>51</width>
      <height>20</height>
     </rect>
    </property>
@@ -187,9 +187,9 @@
   <widget class="QLineEdit" name="lineT3">
    <property name="geometry">
     <rect>
-     <x>120</x>
+     <x>20</x>
      <y>320</y>
-     <width>41</width>
+     <width>51</width>
      <height>20</height>
     </rect>
    </property>
@@ -197,9 +197,9 @@
   <widget class="QLineEdit" name="lineT4">
    <property name="geometry">
     <rect>
-     <x>170</x>
+     <x>80</x>
      <y>320</y>
-     <width>41</width>
+     <width>51</width>
      <height>20</height>
     </rect>
    </property>
@@ -207,9 +207,9 @@
   <widget class="QLineEdit" name="lineT5">
    <property name="geometry">
     <rect>
-     <x>220</x>
+     <x>150</x>
      <y>320</y>
-     <width>41</width>
+     <width>51</width>
      <height>20</height>
     </rect>
    </property>
@@ -343,6 +343,16 @@
    </property>
    <property name="text">
     <string>Select ID to monitor:</string>
+   </property>
+  </widget>
+  <widget class="QLineEdit" name="lineT6">
+   <property name="geometry">
+    <rect>
+     <x>210</x>
+     <y>320</y>
+     <width>51</width>
+     <height>20</height>
+    </rect>
    </property>
   </widget>
  </widget>

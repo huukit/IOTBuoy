@@ -52,8 +52,10 @@ RHReliableDatagram manager(rf95, SERVER_ADDRESS);
 #define DATASTRUCT_TYPE 1
 
 // Structure with the measurements.
+#define dataStructVersion 1
+
 typedef struct _measStruct{
-  uint32_t battmV;  
+  uint32_t dataVersion;
   float measuredvbat;
   float airTemp;
   float airPressureHpa;
@@ -89,19 +91,23 @@ void setup()
       delay(1000);
     }
   }
-
+  
+  rf95.setModemConfig(RH_RF95::Bw31_25Cr48Sf512);
+  
   // Defaults after init are 434.0MHz, modulation GFSK_Rb250Fd250, +13dbM
   if (!rf95.setFrequency(RF95_FREQ)) {
     Serial.println("ERROR: Cannot set requested frequency.");
     while (1);
   }
   Serial.print("INFO: Frequency set: "); Serial.println(RF95_FREQ);
+  
+
 
   // Defaults after init are 434.0MHz, 13dBm, Bw = 125 kHz, Cr = 4/5, Sf = 128chips/symbol, CRC on
   // The default transmitter power is 13dBm, using PA_BOOST.
   // If you are using RFM95/96/97/98 modules which uses the PA_BOOST transmitter pin, then 
   // you can set transmitter powers from 5 to 23 dBm:
-  rf95.setTxPower(5, false);
+  rf95.setTxPower(23, false);
 
   if(!manager.init()){
     while(1){

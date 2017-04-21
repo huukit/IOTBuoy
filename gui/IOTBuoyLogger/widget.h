@@ -41,6 +41,7 @@ class Widget;
 }
 
 typedef struct _measStruct{
+  uint32_t dataStructVersion;
   uint32_t battmV;
   float measuredvbat;
   float airTemp;

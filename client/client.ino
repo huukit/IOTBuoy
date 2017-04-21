@@ -35,6 +35,8 @@
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BME280.h>
 
+#include <RTCZero.h>
+
 // Physical pins for radio.
 #define RFM95_CS      8
 #define RFM95_INT     3
@@ -70,12 +72,24 @@ OneWire ds(DS_DATA);
 
 Adafruit_BME280 bme;
 
+// RTC sleep
+RTCZero rtc;
+const byte seconds = 0;
+const byte minutes = 00;
+const byte hours = 17;
+const byte day = 17;
+const byte month = 11;
+const byte year = 15;
+
 // Helpers
 void printValues();
 uint8_t readTempArray(float * arr);
 
 // Structure with the measurements.
+#define dataStructVersion 1
+
 typedef struct _measStruct{
+  const uint32_t dataVersion = dataStructVersion;
   uint32_t battmV;  
   float measuredvbat;
   float airTemp;
@@ -124,6 +138,8 @@ void setup()
     }
   }
 
+  rf95.setModemConfig(RH_RF95::Bw31_25Cr48Sf512);
+  
   // Defaults after init are 434.0MHz, modulation GFSK_Rb250Fd250, +13dbM
   if (!rf95.setFrequency(RF95_FREQ)) {
     Serial.println("ERROR: Cannot set requested frequency.");
@@ -135,7 +151,7 @@ void setup()
   // The default transmitter power is 13dBm, using PA_BOOST.
   // If you are using RFM95/96/97/98 modules which uses the PA_BOOST transmitter pin, then 
   // you can set transmitter powers from 5 to 23 dBm:
-  rf95.setTxPower(5, false);
+  rf95.setTxPower(23, false);
 
   if(!manager.init()){
     while(1){
@@ -147,12 +163,17 @@ void setup()
 
   bool status;
     
-  // default settings
+  // Default settings
   status = bme.begin(0x76);
   if (!status){
     Serial.println("Could not find a valid BME280 sensor, check wiring!");
     while(1);
   }
+
+  // Start RTC
+  rtc.begin();
+  rtc.setTime(hours, minutes, seconds);
+  rtc.setDate(day, month, year);
 }
 
 void loop()
@@ -180,26 +201,16 @@ void loop()
   // Read DS temp array.
   measurements.sensorCount = readTempArray(measurements.tempArray);
   
-  // Finally send message.
-//  bufLength = sprintf(transmissionBuffer + 1, "Vbat: %dmV", battmV) + 2;
-//  transmissionBuffer[0] = bufLength;
-//  Serial.println(transmissionBuffer);
-  
   sendOk = manager.sendtoWait((uint8_t *)&measurements, sizeof(measurements), SERVER_ADDRESS);
   if(!sendOk){
     Serial.println("ERROR: Did not get ACK for message");   
   }
 
-  //printValues();
-  /*
-  for(int i = 0; i < dsSensorsActive; i++){
-    Serial.print("INFO: Ds id:");
-    Serial.print(i); 
-    Serial.print(" : "); 
-    Serial.print(tempArray[i]); 
-    Serial.println(" C ");
-  }
-  */
+  rf95.sleep();
+  rtc.setAlarmSeconds(00); // RTC time to wake, currently seconds only
+  rtc.enableAlarm(rtc.MATCH_SS); // Match seconds on
+  rtc.standbyMode();    // Sleep until next alarm match
+  
   delay(1000);
 }
 
