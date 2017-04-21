@@ -79,22 +79,43 @@ void Widget::parse(){
             measStruct * mstr;
             mstr = reinterpret_cast<measStruct *>(dataBuffer.data());
 
-            ui->lineBatt->setText(QString::number(mstr->battmV));
-            ui->lineTemp->setText(QString::number(mstr->airTemp));
-            ui->linePress->setText(QString::number(mstr->airPressureHpa));
-            ui->lineRH->setText(QString::number(mstr->airHumidity));
+            // Add sender to combobox.
+            uint32_t items = ui->comboID->count();
+            bool found = false;
 
-            ui->lineTempArrCnt->setText(QString::number(mstr->sensorCount));
+            for(uint32_t i = 0; i < items; i++){
+                if(ui->comboID->itemText(i) == QString::number(sender)){
+                    found = true;
+                    break;
+                }
+            }
 
-            ui->lineT1->setText(QString::number(mstr->tempArray[0]));
-            ui->lineT2->setText(QString::number(mstr->tempArray[1]));
-            ui->lineT3->setText(QString::number(mstr->tempArray[2]));
-            ui->lineT4->setText(QString::number(mstr->tempArray[3]));
-            ui->lineT5->setText(QString::number(mstr->tempArray[4]));
+            if(!found)ui->comboID->addItem(QString::number(sender));
+
+            // Update UI if we have node selected.
+            if(ui->comboID->currentText() == QString::number(sender)){
+                ui->lineBatt->setText(QString::number(mstr->battmV));
+                ui->lineTemp->setText(QString::number(mstr->airTemp));
+                ui->linePress->setText(QString::number(mstr->airPressureHpa));
+                ui->lineRH->setText(QString::number(mstr->airHumidity));
+
+                ui->lineTempArrCnt->setText(QString::number(mstr->sensorCount));
+
+                ui->lineT1->setText(QString::number(mstr->tempArray[0]));
+                ui->lineT2->setText(QString::number(mstr->tempArray[1]));
+                ui->lineT3->setText(QString::number(mstr->tempArray[2]));
+                ui->lineT4->setText(QString::number(mstr->tempArray[3]));
+                ui->lineT5->setText(QString::number(mstr->tempArray[4]));
+
+                ui->lineLastUpdate->setText(QDateTime::currentDateTime().toString());
+
+                ui->lineID->setText(QString::number(sender));
+                ui->lineRSSI->setText(QString::number(rssi));
+            }
 
             if(log){
                 QTextStream logstream(&logFile);
-                logstream << QDate::currentDate().toString() <<  ",";
+                logstream << QDateTime::currentDateTime().toString(Qt::ISODate) <<  ",";
                 logstream << QString::number(mstr->battmV) <<  ",";
 
                 logstream << QString::number(mstr->airTemp) <<  ",";
