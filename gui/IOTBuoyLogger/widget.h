@@ -35,13 +35,14 @@
 #include <stdint.h>
 #include <QFileDialog>
 #include <QFile>
+#include <QTimer>
 
 namespace Ui {
 class Widget;
 }
 
 typedef struct _measStruct{
-  uint32_t dataStructVersion;
+  uint32_t dataVersion;
   uint32_t battmV;
   float measuredvbat;
   float airTemp;
@@ -50,6 +51,10 @@ typedef struct _measStruct{
   uint32_t sensorCount;
   float tempArray[5];
 }measStruct;
+
+#define dataStructVersion1 1
+#define deviceVersion 0x76
+#define invalidRequest 0xF0
 
 class Widget : public QWidget
 {
@@ -71,6 +76,9 @@ private slots:
 
     void on_checkLog_stateChanged(int arg1);
 
+    void sendVersionRequest();
+    void on_butDisconnect_clicked();
+
 private:
     void parse();
 
@@ -82,6 +90,8 @@ private:
     bool log;
     QString filename;
     QFile logFile;
+
+    QTimer connectionTimer;
 };
 
 #endif // WIDGET_H

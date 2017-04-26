@@ -60,7 +60,7 @@ RHReliableDatagram manager(rf95, SERVER_ADDRESS);
 // Data..
 
 // Commands.
-#define dataStructVersion 1
+#define dataStructVersion1 1
 #define deviceVersion 0x76
 #define invalidRequest 0xF0
 
@@ -161,11 +161,13 @@ void loop()
       switch (serialBuffer[0]){
         case deviceVersion:
         {
-          uint8_t packetLength = sizeof(uint32_t) + 3 * sizeof(uint8_t);
-          uint8_t responseType = deviceVersion;
+          uint8_t packetLength = sizeof(uint32_t) + 5 * sizeof(uint8_t);
+          uint32_t responseType = deviceVersion;
           Serial.write("$$$$$");
           Serial.write(packetLength);
-          Serial.write(responseType);
+          Serial.write((uint8_t) 0); // id
+          Serial.write((uint8_t) 0); // rssi
+          Serial.write((uint8_t *)&responseType, sizeof(uint32_t));
           Serial.write(softwareVersionMajor);
           Serial.write(softwareVersionMinor);
           Serial.write(softwareVersionBuild);

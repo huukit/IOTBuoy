@@ -17,6 +17,8 @@ Widget::Widget(QWidget *parent) :
     bytesExpected = 0;
     log = false;
     filename.clear();
+
+    connectionTimer.setInterval(1000);
 }
 
 Widget::~Widget()
@@ -90,27 +92,36 @@ void Widget::parse(){
                 }
             }
 
-            if(!found)ui->comboID->addItem(QString::number(sender));
+            if(!found && sender != 0)ui->comboID->addItem(QString::number(sender));
 
             // Update UI if we have node selected.
             if(ui->comboID->currentText() == QString::number(sender)){
-                ui->lineBatt->setText(QString::number(mstr->battmV));
-                ui->lineTemp->setText(QString::number(mstr->airTemp));
-                ui->linePress->setText(QString::number(mstr->airPressureHpa));
-                ui->lineRH->setText(QString::number(mstr->airHumidity));
+                if(mstr->dataVersion == dataStructVersion1){
+                    ui->lineBatt->setText(QString::number(mstr->battmV));
+                    ui->lineTemp->setText(QString::number(mstr->airTemp));
+                    ui->linePress->setText(QString::number(mstr->airPressureHpa));
+                    ui->lineRH->setText(QString::number(mstr->airHumidity));
 
-                ui->lineTempArrCnt->setText(QString::number(mstr->sensorCount));
+                    ui->lineTempArrCnt->setText(QString::number(mstr->sensorCount));
 
-                ui->lineT1->setText(QString::number(mstr->tempArray[0]));
-                ui->lineT2->setText(QString::number(mstr->tempArray[1]));
-                ui->lineT3->setText(QString::number(mstr->tempArray[2]));
-                ui->lineT4->setText(QString::number(mstr->tempArray[3]));
-                ui->lineT5->setText(QString::number(mstr->tempArray[4]));
+                    ui->lineT1->setText(QString::number(mstr->tempArray[0]));
+                    ui->lineT2->setText(QString::number(mstr->tempArray[1]));
+                    ui->lineT3->setText(QString::number(mstr->tempArray[2]));
+                    ui->lineT4->setText(QString::number(mstr->tempArray[3]));
+                    ui->lineT5->setText(QString::number(mstr->tempArray[4]));
 
-                ui->lineLastUpdate->setText(QDateTime::currentDateTime().toString());
+                    ui->lineLastUpdate->setText(QDateTime::currentDateTime().toString());
 
-                ui->lineID->setText(QString::number(sender));
-                ui->lineRSSI->setText(QString::number(rssi));
+                    ui->lineID->setText(QString::number(sender));
+                    ui->lineRSSI->setText(QString::number(rssi));
+                }
+            }
+
+            // Local stuff.
+            if(sender == 0){
+                if(mstr->dataVersion == deviceVersion){
+                    ui->radServer->setChecked(true);
+                }
             }
 
             if(log){
@@ -167,11 +178,22 @@ void Widget::on_butConnect_clicked()
     sport.setPortName(ui->comboPorts->currentText());
     sport.setBaudRate(QSerialPort::Baud115200);
 
-    if (!sport.open(QIODevice::ReadOnly)) {
+    if (!sport.open(QIODevice::ReadWrite)) {
         qDebug() << QObject::tr("Failed to open port %1, error: %2").arg(ui->comboPorts->currentText()).arg(sport.errorString()) << endl;
     }
 
     connect(&sport, SIGNAL(readyRead()), this, SLOT(handleReadyRead()));
+    connect(&connectionTimer, SIGNAL(timeout()), this, SLOT(sendVersionRequest()));
+    connectionTimer.start();
+    sendVersionRequest();
+
+    ui->butConnect->setEnabled(false);
+    ui->butDisconnect->setEnabled(true);
+}
+
+void Widget::sendVersionRequest(){
+    ui->radServer->setChecked(false);
+    sport.write("v\n");
 }
 
 void Widget::on_butSelectFile_clicked()
@@ -186,3 +208,13 @@ void Widget::on_butSelectFile_clicked()
 }
 
 
+
+void Widget::on_butDisconnect_clicked()
+{
+    sport.close();
+    disconnect(&sport);
+    connectionTimer.stop();
+    disconnect(&connectionTimer);
+    ui->butConnect->setEnabled(true);
+    ui->butDisconnect->setEnabled(false);
+}
