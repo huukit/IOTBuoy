@@ -51,8 +51,18 @@ RHReliableDatagram manager(rf95, SERVER_ADDRESS);
 
 #define DATASTRUCT_TYPE 1
 
-// Structure with the measurements.
+// Protocol is simple:
+// Sync bytes $$$$$
+// Amount of data to expect minus the lenght byte. (uint8_t)
+// Source address. (0 for server) (uint8_t)
+// RSSI (0 for server) (int8_t)
+// Data type (uint32_t)
+// Data..
+
+// Commands.
 #define dataStructVersion 1
+#define deviceVersion 0x76
+#define invalidRequest 0xF0
 
 typedef struct _measStruct{
   uint32_t dataVersion;
@@ -63,6 +73,12 @@ typedef struct _measStruct{
   uint32_t sensorCount;
   float tempArray[MAX_TEMP_SENSORS];
 }measStruct;
+
+#define SERIALBUFFERLENGHT 256
+
+const uint8_t softwareVersionMajor = 0;
+const uint8_t softwareVersionMinor = 0;
+const uint8_t softwareVersionBuild = 10;
 
 void setup() 
 {
@@ -121,6 +137,8 @@ void setup()
 void loop()
 {
   uint8_t receptionBuffer[RH_RF95_MAX_MESSAGE_LEN];
+  uint8_t serialBuffer[SERIALBUFFERLENGHT];
+  
   uint8_t bufLength = sizeof(measStruct);
   uint8_t sourceAddress;
   int8_t rssi = 0;
@@ -134,64 +152,37 @@ void loop()
       rssi = rf95.lastRssi();
       Serial.write(rssi);
       Serial.write((uint8_t *)&measurements, bufLength);
-      /*
-      Serial.print("got request from : 0x");
-      Serial.print(sourceAddress, HEX);
-      Serial.print("RSSI: ");
-      Serial.println(rf95.lastRssi(), DEC); 
-      Serial.println("Measurements:");
-      
-      Serial.print("Battery Voltage (mV): ");
-      Serial.println(measurements.battmV);
-      
-      Serial.print("Air temp (C): ");
-      Serial.println(measurements.airTemp);
-      
-      Serial.print("Air Pressure (hPa): ");
-      Serial.println(measurements.airPressureHpa);
-      
-      Serial.print("Air humidity (%): ");
-      Serial.println(measurements.airHumidity);
+    }
+  }
 
-      Serial.println("Water temp array (id : C):");
-      for(int i = 0; i < measurements.sensorCount; i++){
-        Serial.print(i);
-        Serial.print(" : ");
-        Serial.println(measurements.tempArray[i]);  
+  if(Serial.available()){
+    uint8_t bytes = Serial.readBytesUntil('\n', serialBuffer, SERIALBUFFERLENGHT);  
+    if(bytes != 0){
+      switch (serialBuffer[0]){
+        case deviceVersion:
+        {
+          uint8_t packetLength = sizeof(uint32_t) + 3 * sizeof(uint8_t);
+          uint8_t responseType = deviceVersion;
+          Serial.write("$$$$$");
+          Serial.write(packetLength);
+          Serial.write(responseType);
+          Serial.write(softwareVersionMajor);
+          Serial.write(softwareVersionMinor);
+          Serial.write(softwareVersionBuild);
+        }
+          break;
+        
+        default:
+          uint8_t packetLength = sizeof(uint8_t);
+          uint8_t responseType = invalidRequest;
+          Serial.write("$$$$$");
+          Serial.write(packetLength);
+          Serial.write(responseType);
+          break;
       }
-      */
     }
   }
   delay(20);
-  /*
-  if (rf95.available())
-  {
-    // Should be a message for us now   
-    uint8_t buf[RH_RF95_MAX_MESSAGE_LEN];
-    uint8_t len = sizeof(buf);
-    
-    if (rf95.recv(buf, &len))
-    {
-      digitalWrite(LED, HIGH);
-      RH_RF95::printBuffer("Received: ", buf, len);
-      Serial.print("Got: ");
-      Serial.println((char*)buf);
-       Serial.print("RSSI: ");
-      Serial.println(rf95.lastRssi(), DEC);
-      
-      // Send a reply
-      uint8_t data[] = "And hello back to you";
-      rf95.send(data, sizeof(data));
-      rf95.waitPacketSent();
-      Serial.println("Sent a reply");
-      digitalWrite(LED, LOW);
-    }
-    else
-    {
-      Serial.println("Receive failed");
-    }
-  }
-  */
 }
 
 
