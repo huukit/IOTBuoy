@@ -196,8 +196,7 @@ void Widget::sendVersionRequest(){
     sport.write("v\n");
 }
 
-void Widget::on_butSelectFile_clicked()
-{
+void Widget::on_butSelectFile_clicked(){
     QFileDialog fdial;
     fdial.setViewMode(QFileDialog::Detail);
     filename = fdial.getSaveFileName(this, "Select logfile", "", "csv (*csv)");
@@ -207,10 +206,7 @@ void Widget::on_butSelectFile_clicked()
     }
 }
 
-
-
-void Widget::on_butDisconnect_clicked()
-{
+void Widget::on_butDisconnect_clicked(){
     sport.close();
     disconnect(&sport);
     connectionTimer.stop();
