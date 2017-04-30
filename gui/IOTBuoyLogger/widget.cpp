@@ -142,13 +142,12 @@ void Widget::parse(){
                     }
                     else{
                         QTextStream htmlStream(&htmlFile);
-                        htmlStream << "<html><head><title>IOTBuoy</title></head><body>" << endl;
-
-                        htmlStream << "Buoy id: " << QString::number(sender);
-                        htmlStream << " RSSI: " << QString::number(rssi) << "dB";
-                        htmlStream << " Date: " << QDateTime::currentDateTime().toString(Qt::ISODate) <<  "<br>" << endl;
+                        htmlStream << "<html><head><meta http-equiv=\"refresh\" content=\"30\"><title>IOTBuoy</title></head><body>" << endl;
+                        htmlStream << "Buoy id: " << QString::number(sender) <<  "<br>" << endl;;
+                        htmlStream << "RSSI: " << QString::number(rssi) << "dB" <<  "<br>" << endl;
+                        htmlStream << "Date: " << QDateTime::currentDateTime().toString(Qt::ISODate) <<  "<br>" << endl;
                         htmlStream << "Battery voltage: " << QString::number(mstr->battmV) <<  "mV <br>" << endl;
-                        htmlStream << "Data: <br>" << endl;
+                        htmlStream << "<b>Data: </b><br>" << endl;
                         htmlStream << "Air temp: " << QString::number(mstr->airTemp) <<  "C <br>" << endl;
                         htmlStream << "Air pressure: " << QString::number(mstr->airPressureHpa) <<  "hPa <br>" << endl;
                         htmlStream << "Air humidity: " << QString::number(mstr->airHumidity) <<  "\% <br>" << endl;
