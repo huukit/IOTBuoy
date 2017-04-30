@@ -115,6 +115,53 @@ void Widget::parse(){
                     ui->lineID->setText(QString::number(sender));
                     ui->lineRSSI->setText(QString::number(rssi));
                 }
+                if(log){
+                    QTextStream logstream(&logFile);
+                    logstream << QDateTime::currentDateTime().toString(Qt::ISODate) <<  ",";
+                    logstream << QString::number(mstr->battmV) <<  ",";
+
+                    logstream << QString::number(mstr->airTemp) <<  ",";
+                    logstream << QString::number(mstr->airPressureHpa) <<  ",";
+                    logstream << QString::number(mstr->airHumidity) <<  ",";
+
+                    for(int i = 0; i < mstr->sensorCount; i++){
+                        logstream << QString::number(mstr->tempArray[i]) <<  ",";
+                    }
+                    logstream << endl;
+
+                    // Let's generate a html page.
+                    QFile htmlFile;
+#if defined(Q_OS_WIN)
+    htmlFile.setFileName("C:\\index.html");
+#elif defined(Q_OS_LINUX)
+    htmlFile.setFileName("/var/www/index.html");
+#endif
+
+                    if(!htmlFile.open(QIODevice::WriteOnly | QIODevice::Truncate)){
+                        qDebug() << "Cannot open html file.";
+                    }
+                    else{
+                        QTextStream htmlStream(&htmlFile);
+                        htmlStream << "<html><head><title>IOTBuoy</title></head><body>" << endl;
+
+                        htmlStream << "Buoy id: " << QString::number(sender);
+                        htmlStream << " RSSI: " << QString::number(rssi) << "dB";
+                        htmlStream << " Date: " << QDateTime::currentDateTime().toString(Qt::ISODate) <<  "<br>" << endl;
+                        htmlStream << "Battery voltage: " << QString::number(mstr->battmV) <<  "mV <br>" << endl;
+                        htmlStream << "Data: <br>" << endl;
+                        htmlStream << "Air temp: " << QString::number(mstr->airTemp) <<  "C <br>" << endl;
+                        htmlStream << "Air pressure: " << QString::number(mstr->airPressureHpa) <<  "hPa <br>" << endl;
+                        htmlStream << "Air humidity: " << QString::number(mstr->airHumidity) <<  "\% <br>" << endl;
+                        htmlStream << "Water temp array: <br>" << endl;
+
+                        for(int i = 0; i < mstr->sensorCount; i++){
+                            htmlStream << QString::number(i) << ": " << QString::number(mstr->tempArray[i]) <<  "C <br>" << endl;
+                        }
+
+                        htmlStream << "</body></html>" << endl;
+                    }
+                }
+
             }
 
             // Local stuff.
@@ -124,18 +171,6 @@ void Widget::parse(){
                 }
             }
 
-            if(log){
-                QTextStream logstream(&logFile);
-                logstream << QDateTime::currentDateTime().toString(Qt::ISODate) <<  ",";
-                logstream << QString::number(mstr->battmV) <<  ",";
-
-                logstream << QString::number(mstr->airTemp) <<  ",";
-                logstream << QString::number(mstr->airPressureHpa) <<  ",";
-                logstream << QString::number(mstr->airHumidity) <<  ",";
-
-                logstream << QString::number(mstr->tempArray[0]) <<  ",";
-                logstream << QString::number(mstr->tempArray[1]) <<  endl;
-            }
             dataBuffer.remove(0, bytesExpected - 2);
             bytesExpected = 0;
         }
