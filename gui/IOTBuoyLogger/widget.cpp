@@ -3,6 +3,10 @@
 #include <QDebug>
 #include <QDate>
 
+#include <QtSql/QSqlDatabase>
+#include <QtSql/QSqlQuery>
+#include <QtSql/QSqlError>
+
 Widget::Widget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::Widget)
@@ -71,7 +75,7 @@ void Widget::parse(){
                 return;
 
             // Parse the message.
-            qDebug() << "Parsing main message.";
+            qDebug() << "Parsing message.";
 
             int8_t rssi = dataBuffer.at(1);
             uint8_t sender = dataBuffer.at(0);
@@ -159,6 +163,40 @@ void Widget::parse(){
 
                         htmlStream << "</body></html>" << endl;
                     }
+
+                    // Also save to db.
+                    QSqlDatabase db = QSqlDatabase::addDatabase("QMYSQL");
+                    db.setHostName("localhost");
+                    db.setDatabaseName("poiju");
+                    db.setUserName("poiju");
+                    db.setPassword("poiju");
+
+                    bool ok = db.open();
+                    if(!ok){
+                        qDebug() << "Cannot open database for logging.";
+                    }
+                    else{
+                        QSqlQuery query;
+                        query.prepare("INSERT INTO data (id, timestamp, rssi, batterymV, airTemp, airHumidity, airPresureHpa, waterArrayCount, waterTemp1, waterTemp2, waterTemp3, waterTemp4, waterTemp5) "
+                                      "VALUES (:id, :timestamp, :rssi, :batterymV, :airTemp, :airHumidity, :airPresureHpa, :waterArrayCount, :waterTemp1, :waterTemp2, :waterTemp3, :waterTemp4, :waterTemp5)");
+                        query.bindValue(":id", sender);
+                        query.bindValue(":timestamp", QDateTime::currentDateTime());
+                        query.bindValue(":rssi", rssi);
+                        query.bindValue(":batterymV", mstr->battmV);
+                        query.bindValue(":airTemp", mstr->airTemp);
+                        query.bindValue(":airHumidity", mstr->airHumidity);
+                        query.bindValue(":airPresureHpa", mstr->airPressureHpa);
+                        query.bindValue(":waterArrayCount", mstr->sensorCount);
+                        query.bindValue(":waterTemp1", mstr->tempArray[0]);
+                        query.bindValue(":waterTemp1", mstr->tempArray[1]);
+                        query.bindValue(":waterTemp1", mstr->tempArray[2]);
+                        query.bindValue(":waterTemp1", mstr->tempArray[3]);
+                        query.bindValue(":waterTemp1", mstr->tempArray[4]);
+                        bool ok = query.exec();
+                        if(!ok)
+                            qDebug() << query.lastError();
+                    }
+                    db.close();
                 }
 
             }
