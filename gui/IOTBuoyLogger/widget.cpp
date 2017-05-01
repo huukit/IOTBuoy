@@ -121,7 +121,7 @@ void Widget::parse(){
                 }
                 if(log){
                     QTextStream logstream(&logFile);
-                    logstream << QDateTime::currentDateTime().toString(Qt::ISODate) <<  ",";
+                    logstream << QDateTime::currentDateTime().toString(Qt::DefaultLocaleLongDate) <<  ",";
                     logstream << QString::number(mstr->battmV) <<  ",";
 
                     logstream << QString::number(mstr->airTemp) <<  ",";
@@ -149,7 +149,7 @@ void Widget::parse(){
                         htmlStream << "<html><head><meta http-equiv=\"refresh\" content=\"30\"><title>IOTBuoy</title></head><body>" << endl;
                         htmlStream << "Buoy id: " << QString::number(sender) <<  "<br>" << endl;;
                         htmlStream << "RSSI: " << QString::number(rssi) << "dB" <<  "<br>" << endl;
-                        htmlStream << "Date: " << QDateTime::currentDateTime().toString(Qt::ISODate) <<  "<br>" << endl;
+                        htmlStream << "Date: " << QDateTime::currentDateTime().toString(Qt::DefaultLocaleLongDate) <<  "<br>" << endl;
                         htmlStream << "Battery voltage: " << QString::number(mstr->battmV) <<  "mV <br>" << endl;
                         htmlStream << "<b>Data: </b><br>" << endl;
                         htmlStream << "Air temp: " << QString::number(mstr->airTemp) <<  "C <br>" << endl;
@@ -167,12 +167,13 @@ void Widget::parse(){
                     // Also save to db.
                     QSqlDatabase db = QSqlDatabase::addDatabase("QMYSQL");
                     db.setHostName("localhost");
-                    db.setDatabaseName("poiju");
+                    db.setDatabaseName("Poijut");
                     db.setUserName("poiju");
                     db.setPassword("poiju");
 
                     bool ok = db.open();
                     if(!ok){
+                        qDebug() << db.lastError();
                         qDebug() << "Cannot open database for logging.";
                     }
                     else{
