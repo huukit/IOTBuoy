@@ -178,21 +178,21 @@ void Widget::parse(){
                     }
                     else{
                         QSqlQuery query;
-                        query.prepare("INSERT INTO data (id, timestamp, rssi, batterymV, airTemp, airHumidity, airPresureHpa, waterArrayCount, waterTemp1, waterTemp2, waterTemp3, waterTemp4, waterTemp5) "
-                                      "VALUES (:id, :timestamp, :rssi, :batterymV, :airTemp, :airHumidity, :airPresureHpa, :waterArrayCount, :waterTemp1, :waterTemp2, :waterTemp3, :waterTemp4, :waterTemp5)");
+                        query.prepare("INSERT INTO data (id, timestamp, rssi, batterymV, airTemp, airHumidity, airPressureHpa, waterArrayCount, waterTemp1, waterTemp2, waterTemp3, waterTemp4, waterTemp5) "
+                                      "VALUES (:id, :timestamp, :rssi, :batterymV, :airTemp, :airHumidity, :airPressureHpa, :waterArrayCount, :waterTemp1, :waterTemp2, :waterTemp3, :waterTemp4, :waterTemp5)");
                         query.bindValue(":id", sender);
                         query.bindValue(":timestamp", QDateTime::currentDateTime());
                         query.bindValue(":rssi", rssi);
                         query.bindValue(":batterymV", mstr->battmV);
                         query.bindValue(":airTemp", mstr->airTemp);
                         query.bindValue(":airHumidity", mstr->airHumidity);
-                        query.bindValue(":airPresureHpa", mstr->airPressureHpa);
+                        query.bindValue(":airPressureHpa", mstr->airPressureHpa);
                         query.bindValue(":waterArrayCount", mstr->sensorCount);
                         query.bindValue(":waterTemp1", mstr->tempArray[0]);
-                        query.bindValue(":waterTemp1", mstr->tempArray[1]);
-                        query.bindValue(":waterTemp1", mstr->tempArray[2]);
-                        query.bindValue(":waterTemp1", mstr->tempArray[3]);
-                        query.bindValue(":waterTemp1", mstr->tempArray[4]);
+                        query.bindValue(":waterTemp2", mstr->tempArray[1]);
+                        query.bindValue(":waterTemp3", mstr->tempArray[2]);
+                        query.bindValue(":waterTemp4", mstr->tempArray[3]);
+                        query.bindValue(":waterTemp5", mstr->tempArray[4]);
                         bool ok = query.exec();
                         if(!ok)
                             qDebug() << query.lastError();
