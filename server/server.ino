@@ -109,6 +109,7 @@ void setup()
   }
   
   rf95.setModemConfig(RH_RF95::Bw31_25Cr48Sf512);
+  //rf95.setModemConfig(RH_RF95::Bw125Cr48Sf4096);
   
   // Defaults after init are 434.0MHz, modulation GFSK_Rb250Fd250, +13dbM
   if (!rf95.setFrequency(RF95_FREQ)) {
@@ -116,8 +117,6 @@ void setup()
     while (1);
   }
   Serial.print("INFO: Frequency set: "); Serial.println(RF95_FREQ);
-  
-
 
   // Defaults after init are 434.0MHz, 13dBm, Bw = 125 kHz, Cr = 4/5, Sf = 128chips/symbol, CRC on
   // The default transmitter power is 13dBm, using PA_BOOST.
@@ -131,6 +130,9 @@ void setup()
       delay(1000);
     }
   }
+  
+  manager.setTimeout(5000);
+  
   Serial.print("INFO: Initialization ok, running.");
 }
 

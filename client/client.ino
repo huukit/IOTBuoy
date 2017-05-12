@@ -60,8 +60,8 @@ RHReliableDatagram manager(rf95, CLIENT_ADDRESS);
 #define VBATPIN A7
 
 // DS18S20
-#define DS_GND 12
-#define DS_DATA 13
+#define DS_GND 11
+#define DS_DATA 12
 #define MAX_TEMP_SENSORS 5
 
 OneWire ds(DS_DATA);
@@ -117,6 +117,8 @@ void setup()
   
   digitalWrite(RFM95_RST, HIGH);
 
+  digitalWrite(LED, LOW);
+  
   // Init serial.
   //while (!Serial);
   Serial.begin(115200);
@@ -139,6 +141,7 @@ void setup()
   }
 
   rf95.setModemConfig(RH_RF95::Bw31_25Cr48Sf512);
+  //rf95.setModemConfig(RH_RF95::Bw125Cr48Sf4096);
   
   // Defaults after init are 434.0MHz, modulation GFSK_Rb250Fd250, +13dbM
   if (!rf95.setFrequency(RF95_FREQ)) {
@@ -159,6 +162,8 @@ void setup()
       delay(1000);
     }
   }
+  manager.setTimeout(5000);
+  
   Serial.println("INFO: Initialization ok, running.");
 
   bool status;
@@ -185,7 +190,8 @@ void loop()
   measStruct measurements;
   
   Serial.println("INFO: Sending message!");   
-
+  digitalWrite(LED, HIGH);
+  
   // Measure battery voltage.
   measuredvbat = analogRead(VBATPIN);
   measuredvbat *= 2;    // we divided by 2, so multiply back
@@ -200,18 +206,22 @@ void loop()
   
   // Read DS temp array.
   measurements.sensorCount = readTempArray(measurements.tempArray);
+  Serial.println("Sensorscount: ");
+  Serial.println(measurements.sensorCount);
+  for(int i = 0; i < measurements.sensorCount; i++)
+    Serial.println(measurements.tempArray[i]);
   
   sendOk = manager.sendtoWait((uint8_t *)&measurements, sizeof(measurements), SERVER_ADDRESS);
   if(!sendOk){
     Serial.println("ERROR: Did not get ACK for message");   
   }
 
+  digitalWrite(LED, LOW);
+
   rf95.sleep();
   rtc.setAlarmSeconds(00); // RTC time to wake, currently seconds only
   rtc.enableAlarm(rtc.MATCH_SS); // Match seconds on
   rtc.standbyMode();    // Sleep until next alarm match
-  
-  delay(1000);
 }
 
 uint8_t readTempArray(float * arr){
