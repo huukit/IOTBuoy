@@ -3,6 +3,10 @@
 #include <QDebug>
 #include <QDate>
 
+#include <QtSql/QSqlDatabase>
+#include <QtSql/QSqlQuery>
+#include <QtSql/QSqlError>
+
 Widget::Widget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::Widget)
@@ -71,7 +75,7 @@ void Widget::parse(){
                 return;
 
             // Parse the message.
-            qDebug() << "Parsing main message.";
+            qDebug() << "Parsing message.";
 
             int8_t rssi = dataBuffer.at(1);
             uint8_t sender = dataBuffer.at(0);
@@ -115,6 +119,87 @@ void Widget::parse(){
                     ui->lineID->setText(QString::number(sender));
                     ui->lineRSSI->setText(QString::number(rssi));
                 }
+                if(log){
+                    QTextStream logstream(&logFile);
+                    logstream << QDateTime::currentDateTime().toString(Qt::DefaultLocaleLongDate) <<  ",";
+                    logstream << QString::number(mstr->battmV) <<  ",";
+
+                    logstream << QString::number(mstr->airTemp) <<  ",";
+                    logstream << QString::number(mstr->airPressureHpa) <<  ",";
+                    logstream << QString::number(mstr->airHumidity) <<  ",";
+
+                    for(int i = 0; i < mstr->sensorCount; i++){
+                        logstream << QString::number(mstr->tempArray[i]) <<  ",";
+                    }
+                    logstream << endl;
+
+                    // Let's generate a html page.
+                    QFile htmlFile;
+#if defined(Q_OS_WIN)
+    htmlFile.setFileName("C:\\index.html");
+#elif defined(Q_OS_LINUX)
+    htmlFile.setFileName("/var/www/index.html");
+#endif
+
+                    if(!htmlFile.open(QIODevice::WriteOnly | QIODevice::Truncate)){
+                        qDebug() << "Cannot open html file.";
+                    }
+                    else{
+                        QTextStream htmlStream(&htmlFile);
+                        htmlStream << "<html><head><meta http-equiv=\"refresh\" content=\"30\"><title>IOTBuoy</title></head><body>" << endl;
+                        htmlStream << "Buoy id: " << QString::number(sender) <<  "<br>" << endl;;
+                        htmlStream << "RSSI: " << QString::number(rssi) << "dB" <<  "<br>" << endl;
+                        htmlStream << "Date: " << QDateTime::currentDateTime().toString(Qt::DefaultLocaleLongDate) <<  "<br>" << endl;
+                        htmlStream << "Battery voltage: " << QString::number(mstr->battmV) <<  "mV <br>" << endl;
+                        htmlStream << "<b>Data: </b><br>" << endl;
+                        htmlStream << "Air temp: " << QString::number(mstr->airTemp) <<  "C <br>" << endl;
+                        htmlStream << "Air pressure: " << QString::number(mstr->airPressureHpa) <<  "hPa <br>" << endl;
+                        htmlStream << "Air humidity: " << QString::number(mstr->airHumidity) <<  "\% <br>" << endl;
+                        htmlStream << "Water temp array: <br>" << endl;
+
+                        for(int i = 0; i < mstr->sensorCount; i++){
+                            htmlStream << QString::number(i) << ": " << QString::number(mstr->tempArray[i]) <<  "C <br>" << endl;
+                        }
+
+                        htmlStream << "</body></html>" << endl;
+                    }
+
+                    // Also save to db.
+                    QSqlDatabase db = QSqlDatabase::addDatabase("QMYSQL");
+                    db.setHostName("localhost");
+                    db.setDatabaseName("Poijut");
+                    db.setUserName("poiju");
+                    db.setPassword("poiju");
+
+                    bool ok = db.open();
+                    if(!ok){
+                        qDebug() << db.lastError();
+                        qDebug() << "Cannot open database for logging.";
+                    }
+                    else{
+                        QSqlQuery query;
+                        query.prepare("INSERT INTO data (id, timestamp, rssi, batterymV, airTemp, airHumidity, airPressureHpa, waterArrayCount, waterTemp1, waterTemp2, waterTemp3, waterTemp4, waterTemp5) "
+                                      "VALUES (:id, :timestamp, :rssi, :batterymV, :airTemp, :airHumidity, :airPressureHpa, :waterArrayCount, :waterTemp1, :waterTemp2, :waterTemp3, :waterTemp4, :waterTemp5)");
+                        query.bindValue(":id", sender);
+                        query.bindValue(":timestamp", QDateTime::currentDateTime());
+                        query.bindValue(":rssi", rssi);
+                        query.bindValue(":batterymV", mstr->battmV);
+                        query.bindValue(":airTemp", mstr->airTemp);
+                        query.bindValue(":airHumidity", mstr->airHumidity);
+                        query.bindValue(":airPressureHpa", mstr->airPressureHpa);
+                        query.bindValue(":waterArrayCount", mstr->sensorCount);
+                        query.bindValue(":waterTemp1", mstr->tempArray[0]);
+                        query.bindValue(":waterTemp2", mstr->tempArray[1]);
+                        query.bindValue(":waterTemp3", mstr->tempArray[2]);
+                        query.bindValue(":waterTemp4", mstr->tempArray[3]);
+                        query.bindValue(":waterTemp5", mstr->tempArray[4]);
+                        bool ok = query.exec();
+                        if(!ok)
+                            qDebug() << query.lastError();
+                    }
+                    db.close();
+                }
+
             }
 
             // Local stuff.
@@ -124,18 +209,6 @@ void Widget::parse(){
                 }
             }
 
-            if(log){
-                QTextStream logstream(&logFile);
-                logstream << QDateTime::currentDateTime().toString(Qt::ISODate) <<  ",";
-                logstream << QString::number(mstr->battmV) <<  ",";
-
-                logstream << QString::number(mstr->airTemp) <<  ",";
-                logstream << QString::number(mstr->airPressureHpa) <<  ",";
-                logstream << QString::number(mstr->airHumidity) <<  ",";
-
-                logstream << QString::number(mstr->tempArray[0]) <<  ",";
-                logstream << QString::number(mstr->tempArray[1]) <<  endl;
-            }
             dataBuffer.remove(0, bytesExpected - 2);
             bytesExpected = 0;
         }
