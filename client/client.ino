@@ -179,18 +179,21 @@ void setup()
   rtc.begin();
   rtc.setTime(hours, minutes, seconds);
   rtc.setDate(day, month, year);
+  rtc.setAlarmSeconds(00); // RTC time to wake, currently seconds only
+  rtc.enableAlarm(rtc.MATCH_SS); // Match seconds on
+
 }
 
-void loop()
-{
-  char transmissionBuffer[256];
-  uint8_t bufLength = 0;
-  bool sendOk;
-  float measuredvbat; 
-  measStruct measurements;
+char transmissionBuffer[256];
+uint8_t bufLength = 0;
+bool sendOk;
+float measuredvbat; 
+measStruct measurements;
   
-  Serial.println("INFO: Sending message!");   
+void loop()
+{  
   digitalWrite(LED, HIGH);
+  Serial.println("INFO: Sending message!");   
   
   // Measure battery voltage.
   measuredvbat = analogRead(VBATPIN);
@@ -216,11 +219,9 @@ void loop()
     Serial.println("ERROR: Did not get ACK for message");   
   }
 
-  digitalWrite(LED, LOW);
-
   rf95.sleep();
-  rtc.setAlarmSeconds(00); // RTC time to wake, currently seconds only
-  rtc.enableAlarm(rtc.MATCH_SS); // Match seconds on
+  delay(1000);
+  digitalWrite(LED, LOW);
   rtc.standbyMode();    // Sleep until next alarm match
 }
 
