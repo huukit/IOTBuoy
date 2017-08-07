@@ -86,8 +86,11 @@ typedef struct _measStruct{
   float airHumidity;
   uint32_t sensorCount;
   float tempArray[MAX_TEMP_SENSORS];
-  float windSpeed;
+  float windSpeedAvg;
+  float windSpeedMax;
   float windDirection;
+  float windDirectionVariance;
+  float waveHeight;
 }measStruct;
 
 #define SERIALBUFFERLENGTH 256
@@ -113,7 +116,7 @@ void setup()
   digitalWrite(RFM95_RST, HIGH);
 
   // Init serial.
-  while (!Serial);
+  // while (!Serial);
   Serial.begin(115200);
   delay(100);
 
@@ -241,14 +244,20 @@ void loop()
           // output the value of each analog input pin
           for (int i = 0; i < MAX_ADDRESSES; i++) {
             client.println(i);
+            client.println(lastData[i].dataVersion);
             client.println(lastData[i].battmV);
             client.println(lastData[i].airTemp);
             client.println(lastData[i].airPressureHpa);
             client.println(lastData[i].airHumidity);
             client.println(lastData[i].sensorCount);
-            for(int j = 0; j < lastData[i].sensorCount; j++){
+            for(int j = 0; j < MAX_TEMP_SENSORS; j++){
               client.println(lastData[i].tempArray[j]);
             }
+            client.println(lastData[i].windSpeedAvg);
+            client.println(lastData[i].windSpeedMax);
+            client.println(lastData[i].windDirection);
+            client.println(lastData[i].windDirectionVariance);
+            client.println(lastData[i].waveHeight);
             client.println("<br>");
           }
           client.println("</html>");
