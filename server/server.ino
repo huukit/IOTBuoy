@@ -62,8 +62,6 @@ RHReliableDatagram manager(rf95, SERVER_ADDRESS);
 
 #define MAX_TEMP_SENSORS 5
 
-#define DATASTRUCT_TYPE 1
-
 // Protocol is simple:
 // Sync bytes $$$$$
 // Amount of data to expect minus the lenght byte. (uint8_t)
@@ -103,9 +101,10 @@ uint8_t receptionBuffer[RH_RF95_MAX_MESSAGE_LEN];
 uint8_t serialBuffer[SERIALBUFFERLENGTH];
 uint8_t receivedBytes = RH_RF95_MAX_MESSAGE_LEN;
 uint8_t sourceAddress;
-int8_t rssi = 0;  
 
 measStruct lastData[MAX_ADDRESSES];
+int8_t rssi[MAX_ADDRESSES];  
+
 EthernetClient client;
 
 void setup() 
@@ -178,12 +177,12 @@ void loop()
  
   if(manager.available()){
     if(manager.recvfromAck(receptionBuffer, &receivedBytes, &sourceAddress)){
-      rssi = rf95.lastRssi();
       if(sourceAddress < MAX_ADDRESSES){
+        rssi[sourceAddress] = rf95.lastRssi();
         Serial.write("$$$$$");
         Serial.write(receivedBytes + 2);
         Serial.write(sourceAddress);
-        Serial.write(rssi);
+        Serial.write(rssi[sourceAddress]);
         Serial.write(receptionBuffer, receivedBytes);
         memcpy((uint8_t *)&lastData[sourceAddress], receptionBuffer, receivedBytes);
       }
@@ -244,13 +243,14 @@ void loop()
           // output the value of each analog input pin
           for (int i = 0; i < MAX_ADDRESSES; i++) {
             client.println(i);
+            client.println(rssi[i]);
             client.println(lastData[i].dataVersion);
             client.println(lastData[i].battmV);
             client.println(lastData[i].airTemp);
             client.println(lastData[i].airPressureHpa);
             client.println(lastData[i].airHumidity);
             client.println(lastData[i].sensorCount);
-            for(int j = 0; j < MAX_TEMP_SENSORS; j++){
+            for(int j = 0; j < lastData[i].sensorCount; j++){
               client.println(lastData[i].tempArray[j]);
             }
             client.println(lastData[i].windSpeedAvg);
