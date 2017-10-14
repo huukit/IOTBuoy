@@ -26,8 +26,20 @@
  */
 
 #include <SPI.h>
+#include <Ethernet2.h>
 #include <RHReliableDatagram.h>
 #include <RH_RF95.h>
+
+// Ethernet stuff.
+byte mac[] = { 0x98, 0x76, 0xB6, 0x10, 0x57, 0x75 };
+IPAddress ip(192, 168, 1, 60);
+IPAddress dnsServer(192, 168, 1, 1);
+IPAddress gateway(192, 168, 1, 1);
+IPAddress subnet(255, 255, 255, 0);
+
+EthernetServer server(80);
+
+#define WIZ_CS 10
 
 // Physical pins for radio.
 #define RFM95_CS      8
@@ -41,6 +53,7 @@
 #define RF95_FREQ 433.0
 
 // Server end address.
+#define MAX_ADDRESSES 16
 #define SERVER_ADDRESS 1
 
 // Radio driver and package manager.
@@ -48,8 +61,6 @@ RH_RF95 rf95(RFM95_CS, RFM95_INT);
 RHReliableDatagram manager(rf95, SERVER_ADDRESS);
 
 #define MAX_TEMP_SENSORS 5
-
-#define DATASTRUCT_TYPE 1
 
 // Protocol is simple:
 // Sync bytes $$$$$
@@ -60,25 +71,41 @@ RHReliableDatagram manager(rf95, SERVER_ADDRESS);
 // Data..
 
 // Commands.
-#define dataStructVersion1 1
+#define dataStructVersion 1
 #define deviceVersion 0x76
 #define invalidRequest 0xF0
 
 typedef struct _measStruct{
-  uint32_t dataVersion;
+  const uint32_t dataVersion = dataStructVersion;
+  uint32_t battmV;  
   float measuredvbat;
   float airTemp;
   float airPressureHpa;
   float airHumidity;
   uint32_t sensorCount;
   float tempArray[MAX_TEMP_SENSORS];
+  float windSpeedAvg;
+  float windSpeedMax;
+  float windDirection;
+  float windDirectionVariance;
+  float waveHeight;
 }measStruct;
 
-#define SERIALBUFFERLENGHT 256
+#define SERIALBUFFERLENGTH 256
 
 const uint8_t softwareVersionMajor = 0;
 const uint8_t softwareVersionMinor = 0;
 const uint8_t softwareVersionBuild = 10;
+
+uint8_t receptionBuffer[RH_RF95_MAX_MESSAGE_LEN];
+uint8_t serialBuffer[SERIALBUFFERLENGTH];
+uint8_t receivedBytes = RH_RF95_MAX_MESSAGE_LEN;
+uint8_t sourceAddress;
+
+measStruct lastData[MAX_ADDRESSES];
+int8_t rssi[MAX_ADDRESSES];  
+
+EthernetClient client;
 
 void setup() 
 {
@@ -88,7 +115,7 @@ void setup()
   digitalWrite(RFM95_RST, HIGH);
 
   // Init serial.
-  while (!Serial);
+  // while (!Serial);
   Serial.begin(115200);
   delay(100);
 
@@ -109,6 +136,7 @@ void setup()
   }
   
   rf95.setModemConfig(RH_RF95::Bw31_25Cr48Sf512);
+  //rf95.setModemConfig(RH_RF95::Bw125Cr48Sf4096);
   
   // Defaults after init are 434.0MHz, modulation GFSK_Rb250Fd250, +13dbM
   if (!rf95.setFrequency(RF95_FREQ)) {
@@ -116,8 +144,6 @@ void setup()
     while (1);
   }
   Serial.print("INFO: Frequency set: "); Serial.println(RF95_FREQ);
-  
-
 
   // Defaults after init are 434.0MHz, 13dBm, Bw = 125 kHz, Cr = 4/5, Sf = 128chips/symbol, CRC on
   // The default transmitter power is 13dBm, using PA_BOOST.
@@ -131,32 +157,40 @@ void setup()
       delay(1000);
     }
   }
-  Serial.print("INFO: Initialization ok, running.");
+  
+  manager.setTimeout(5000);
+
+  Serial.print("Initializing Ethernet.");
+  Ethernet.init(WIZ_CS);
+  Ethernet.begin(mac, ip, dnsServer, gateway, subnet);
+  Serial.print("My IP address: ");
+  Serial.println(Ethernet.localIP());
+
+  server.begin();
+  
+  Serial.println("INFO: Initialization ok, running.");
 }
 
 void loop()
 {
-  uint8_t receptionBuffer[RH_RF95_MAX_MESSAGE_LEN];
-  uint8_t serialBuffer[SERIALBUFFERLENGHT];
-  
-  uint8_t bufLength = sizeof(measStruct);
-  uint8_t sourceAddress;
-  int8_t rssi = 0;
-  measStruct measurements;
-  
+  rf95.process();
+ 
   if(manager.available()){
-    if(manager.recvfromAck((uint8_t *)&measurements, &bufLength, &sourceAddress)){
-      Serial.write("$$$$$");
-      Serial.write(bufLength + 2);
-      Serial.write(sourceAddress);
-      rssi = rf95.lastRssi();
-      Serial.write(rssi);
-      Serial.write((uint8_t *)&measurements, bufLength);
+    if(manager.recvfromAck(receptionBuffer, &receivedBytes, &sourceAddress)){
+      if(sourceAddress < MAX_ADDRESSES){
+        rssi[sourceAddress] = rf95.lastRssi();
+        Serial.write("$$$$$");
+        Serial.write(receivedBytes + 2);
+        Serial.write(sourceAddress);
+        Serial.write(rssi[sourceAddress]);
+        Serial.write(receptionBuffer, receivedBytes);
+        memcpy((uint8_t *)&lastData[sourceAddress], receptionBuffer, receivedBytes);
+      }
     }
   }
 
   if(Serial.available()){
-    uint8_t bytes = Serial.readBytesUntil('\n', serialBuffer, SERIALBUFFERLENGHT);  
+    uint8_t bytes = Serial.readBytesUntil('\n', serialBuffer, SERIALBUFFERLENGTH);  
     if(bytes != 0){
       switch (serialBuffer[0]){
         case deviceVersion:
@@ -184,7 +218,66 @@ void loop()
       }
     }
   }
-  delay(20);
+
+
+
+  client = server.available();  
+  // listen for incoming clients
+  if (client) {
+      boolean currentLineIsBlank = true;
+    while (client.connected()) {
+      if (client.available()) {
+        char c = client.read();
+        // if you've gotten to the end of the line (received a newline
+        // character) and the line is blank, the http request has ended,
+        // so you can send a reply
+        if (c == '\n' && currentLineIsBlank) {
+          // send a standard http response header
+          client.println("HTTP/1.1 200 OK");
+          client.println("Content-Type: text/html");
+          client.println("Connection: close");  // the connection will be closed after completion of the response
+          client.println("Refresh: 5");  // refresh the page automatically every 5 sec
+          client.println();
+          client.println("<!DOCTYPE HTML>");
+          client.println("<html>");
+          // output the value of each analog input pin
+          for (int i = 0; i < MAX_ADDRESSES; i++) {
+            client.println(i);
+            client.println(rssi[i]);
+            client.println(lastData[i].dataVersion);
+            client.println(lastData[i].battmV);
+            client.println(lastData[i].airTemp);
+            client.println(lastData[i].airPressureHpa);
+            client.println(lastData[i].airHumidity);
+            client.println(lastData[i].sensorCount);
+            for(int j = 0; j < lastData[i].sensorCount; j++){
+              client.println(lastData[i].tempArray[j]);
+            }
+            client.println(lastData[i].windSpeedAvg);
+            client.println(lastData[i].windSpeedMax);
+            client.println(lastData[i].windDirection);
+            client.println(lastData[i].windDirectionVariance);
+            client.println(lastData[i].waveHeight);
+            client.println("<br>");
+          }
+          client.println("</html>");
+          break;
+        }
+        if (c == '\n') {
+          // you're starting a new line
+          currentLineIsBlank = true;
+        }
+        else if (c != '\r') {
+          // you've gotten a character on the current line
+          currentLineIsBlank = false;
+        }
+      }
+    }
+
+    delay(1);
+    client.stop();
+  }
 }
+
 
 
