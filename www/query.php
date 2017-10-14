@@ -1,55 +1,89 @@
-<?php
-$servername = "localhost";
-$username = "poiju";
-$password = "poiju";
-$dbname = "Poijut";
+<!DOCTYPE html>
+<html lang = "en-US">
+    <head>
+        <meta charset = "UTF-8">
+        <title>Query</title>
+    </head>
+    <body>
+        <?php
+        $servername = "localhost";
+        $username = "poiju";
+        $password = "poiju";
+        $dbname = "Poijut";
 
-$id = $_REQUEST['id'];
+        // Data or information
+        $info = filter_input(INPUT_GET, 'info');
 
-// Create connection
-$conn = new mysqli($servername, $username, $password, $dbname);
-// Check connection
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
-}
+        // ID and datatype.
+        $id = filter_input(INPUT_GET, 'id');
+        $type = filter_input(INPUT_GET, 'datatype');
 
-$sql = "SELECT name FROM poijut WHERE id = $id";
-$result = $conn->query($sql);
+        // Limits, etc.
+        $limit = filter_input(INPUT_GET, 'limit');
+        $sdate = filter_input(INPUT_GET, 'sdate');
+        $edate = filter_input(INPUT_GET, 'edate');
 
-if ($result->num_rows > 0) {
-   $row = $result->fetch_assoc();
-   $name =  $row["name"];
-}
+        // Create connection
+        $conn = new mysqli($servername, $username, $password, $dbname);
+        // Check connection
+        if ($conn->connect_error) {
+            die("Connection failed: " . $conn->connect_error);
+        }
 
-$limit = $_REQUEST['limit'];
+        // Information query
+        if ($info == 'true'){
+            if(empty($id)){
+                $sql = "SELECT * FROM poijut";
+            }
+            else{
+                $sql = "SELECT * FROM poijut WHERE id = $id";
+            }
+            $result = $conn->query($sql);
+            $data = array();
 
-if ($limit > 0)
-   $sql = "SELECT * FROM data WHERE id = $id ORDER BY timestamp DESC LIMIT $limit";
-else
-    $sql = "SELECT * FROM data WHERE id = $id";
+            if ($result->num_rows > 0) {
+                 while($row = $result->fetch_assoc()) {
+                     $rowarr["id"] = $row["id"];
+                     $rowarr["name"] = $row["name"];
+                     $rowarr["position"] = $row["position"];
+                     $rowarr["date_added"] = $row["date_added"];
+                     array_push($data, $rowarr);
+                 }
+            }
+            echo json_encode($data);
+        }
+        
+        // Data query
+        else{
+            $sql = "SELECT timestamp, $type FROM data WHERE id = $id";
+            
+            if(!empty($sdate)){
+                $sql = $sql . " AND timestamp >= '$sdate'";
+            }
+            
+            if(!empty($edate)){
+                $sql = $sql . " AND timestamp <= '$edate'";
+            }
+            
+            // Limit active.
+            if(!empty($limit))  {
+                $sql = $sql . " ORDER BY timestamp DESC LIMIT $limit";
+            }
 
-$result = $conn->query($sql);
-
-if ($result->num_rows > 0) {
-    // output data of each row
-    while($row = $result->fetch_assoc()) {
-        echo $name . " " . $row["id"] 
-                   . " " . $row["timestamp"]
-                   . " " . $row["rssi"]
-                   .  " " . $row["batterymV"]
-                   . " " . $row["airTemp"]
-                   . " " . $row["airHumidity"]
-                   . " " . $row["airPressureHpa"];
-
-                   for($i = 0; $i < $row["waterArrayCount"]; $i++){
-                     $sensor = "waterTemp" . ($i + 1);
-                     echo " ". ($i + 1) . ":" . $row[$sensor];
-                   }
-                   echo "<br>";
-    }
-} else {
-    echo "0 results";
-}
-$conn->close();
-
-?>
+            echo $sql;
+            $result = $conn->query($sql);
+            $data = array();
+            if ($result->num_rows > 0) {
+                $arr = array();
+                while($row = $result->fetch_assoc()) {
+                    array_push($data, array($row["timestamp"] => $row["$type"]));
+                 }
+                 echo json_encode($data);
+            } else {
+                echo "[]";
+            }
+        }
+        $conn->close();
+        ?>
+</body>
+</html>
