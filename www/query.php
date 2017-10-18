@@ -1,4 +1,23 @@
 <?php
+    /**
+     * <copyright>
+     * Copyright (c) 2017: Tuomas Huuki
+     *
+     * This file is free software; you can redistribute it and/or modify
+     * it under the terms of either the GNU General Public License version 2chrome-extension://mpognobbkildjkofajifpdfhcoklimli/components/startpage/startpage.html?section=Speed-dials&activeSpeedDialIndex=0
+     * or the GNU Lesser General Public License version 2.1, both as
+     * published by the Free Software Foundation.
+     *
+     * This program is distributed in the hope that it will be useful,
+     * but WITHOUT ANY WARRANTY; without even the implied warranty of
+     * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+     * Lesser GNU General Public License for more details.
+     *
+     * You should have received a copy of the (Lesser) GNU General Public License
+     * along with this program. If not, see <http://www.gnu.org/licenses/>.
+     * </copyright>
+     */
+
     $servername = "localhost";
     $username = "poiju";
     $password = "poiju";
