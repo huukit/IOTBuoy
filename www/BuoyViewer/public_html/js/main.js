@@ -23,9 +23,11 @@ var map = null;
 var rTimer = null;
 var nodes = null;
 
+const queryUrl = "http://ohtakari.dyndns.org:8080/query.php";
+
 function loadRealtime(){
     data = "info=fullinfo";
-    $.getJSON("http://ohtakari.dyndns.org:8080/query.php", data, function (result, status) {
+    $.getJSON(queryUrl, data, function (result, status) {
         var nodelist = "<table><tr>" 
                         + "<th>ID</th>"
                         + "<th>Name</th>"
@@ -146,7 +148,7 @@ function loadNodes() {
 
     // Get list and update all data.
     data = "info=info";
-    $.getJSON("http://ohtakari.dyndns.org:8080/query.php", data, function (result, status) {
+    $.getJSON(queryUrl, data, function (result, status) {
         var nodelist = "Select node:<select id =\"nodeId\" onchange = \"updateGraph()\">";
         console.log("Updating node list.");
         
@@ -188,7 +190,7 @@ function onNodeClicked(id, start, end) {
 
     // Get list and update graph.
     data = "id=" + id + "&datatype=" + datatype + "&sdate=" + start + "&edate=" + end;
-    $.getJSON("http://ohtakari.dyndns.org:8080/query.php", data, function (result, status) {
+    $.getJSON(queryUrl, data, function (result, status) {
         console.log("Data received for id: " + id);
 
         var datas = [], dates = [];
@@ -236,7 +238,8 @@ function onNodeClicked(id, start, end) {
                         ],
                         borderWidth: 1
                     }]
-            },
+            }/*,
+            
             options: {
                 scales: {
                     yAxes: [{
@@ -246,6 +249,7 @@ function onNodeClicked(id, start, end) {
                         }]
                 }
             }
+            */
         });
         $('.loader').hide();
     })
