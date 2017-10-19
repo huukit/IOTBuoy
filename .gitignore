@@ -29,6 +29,6 @@
 *.app
 *.user
 build-IOTBuoyLogger-Desktop_Qt_5_7_0_MSVC2013_32bit-Debug
-/www/nbproject/private/
-private.properties
-private.xml
+/www/nbproject/private
+/www/BuoyViewer/public_html/publish
+/www/BuoyViewer/public_html/intermediate
