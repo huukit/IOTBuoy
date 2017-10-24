@@ -26,6 +26,7 @@ var nodes = null;
 const queryUrl = "http://ohtakari.dyndns.org:8080/query.php";
 
 function loadRealtime(){
+    $('.loader').show();
     data = "info=fullinfo";
     $.getJSON(queryUrl, data, function (result, status) {
         var nodelist = "<table><tr>" 
@@ -94,14 +95,11 @@ function loadRealtime(){
         document.getElementById('realTimeData').innerHTML = nodedata;
         
         if(rTimer === null)setRefresh();
+        $('.loader').hide();
     })
             .error(function (xhr, textStatus) {
                 alert(textStatus + " " + xhr.readyState);
             });
-}
-
-function getNodeRealtimeData(){
-    
 }
 
 function setRefresh(){

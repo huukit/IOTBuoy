@@ -26,24 +26,26 @@
             Links: 
             <a href="http://ohtakari.com">Ohtakari.com</a>
             <a href="http://proximia.fi">Proximia.fi</a>
-            
         </nav>
            
         <main>
             <section class="nodeList">
                 <header>Node list:</header>
-                <p id ="nodes">
-                
-                </p>
-                
+                <p id ="nodes"></p>
                 <p>
                     Select data:
                     <select id ="dataType">
+                        <option value ="rssi">Signal strength</option>
+                        <option value ="batterymV">Battery Voltage</option>
                         <option value ="airTemp">Air Temp</option>
                         <option value ="airHumidity">Air Humidity</option>
                         <option value ="airPressureHpa">Air Pressure</option>
-                        <option value ="rssi">Signal strength</option>
-                        <option value ="batterymV">Air Temp</option>
+                        <option value ="waterTemp1">Water Temp (1)</option>
+                        <option value ="waterTemp2">Water Temp (2)</option>
+                        <option value ="waterTemp3">Water Temp (3)</option>
+                        <option value ="waterTemp4">Water Temp (4)</option>
+                        <option value ="waterTemp5">Water Temp (5)</option>
+                        <option value ="waterTemp6">Water Temp (6)</option>
                     </select>
                 </p>
                     
@@ -79,11 +81,11 @@
         <footer>
             (c) Tuomas Huuki 2017 / proximia
         </footer>
-        
          
         <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDJqe0LTmsLLNx9Un2wikfjbynTDD_0VbA&callback=myMap" async defer></script> 
         <script src="https://code.jquery.com/jquery-1.12.0.min.js"></script>
-        <script>window.jQuery || document.write('<script src="js/vendor/jquery-1.12.0.min.js"><\/script>')</script>
+        <script>window.jQuery || document.write('<script src="js/vendor/jquery-1.12.0.min.js"><\/script>');</script>
+        
         <!-- //-beg- concat_js -->
         <script src="js/plugins.js"></script>
         <script src="js/main.js"></script>
