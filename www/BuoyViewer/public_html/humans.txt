@@ -3,11 +3,11 @@
 
 # TEAM
 
-    <name> -- <role> -- <twitter>
+    Tuomas Huuki -- Main Developer -- http://proximia.fi
 
 # THANKS
 
-    <name>
+    Life
 
 # TECHNOLOGY COLOPHON
 
