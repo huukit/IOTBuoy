@@ -20,7 +20,7 @@
 /* $Id$ */
 
 /*! \file
- * Server end for IOT weather buoy. (license: GPLv2 or LGPLv2.1)
+ * Client end for IOT weather buoy. (license: GPLv2 or LGPLv2.1)
  * \author Tuomas Huuki tuomas.huuki@proximia.fi
  * \copyright 2017 Tuomas Huuki / proximia.fi
  */
@@ -36,6 +36,7 @@
 #include <Adafruit_BME280.h>
 
 #include <RTCZero.h>
+#include <Adafruit_SleepyDog.h>
 
 // Physical pins for radio.
 #define RFM95_CS      8
@@ -90,6 +91,7 @@ uint8_t readTempArray(float * arr);
 
 typedef struct _measStruct{
   const uint32_t dataVersion = dataStructVersion;
+  uint32_t loopCounter;
   uint32_t battmV;  
   float measuredvbat;
   float airTemp;
@@ -98,6 +100,8 @@ typedef struct _measStruct{
   uint32_t sensorCount;
   float tempArray[MAX_TEMP_SENSORS];
 }measStruct;
+
+uint32_t loopcounter;
 
 void setup() 
 {
@@ -112,9 +116,6 @@ void setup()
   
   digitalWrite(DS_GND, LOW);
 
-  digitalWrite(BME280_GND, LOW);
-  digitalWrite(BME280_VCC, HIGH);
-  
   digitalWrite(RFM95_RST, HIGH);
 
   digitalWrite(LED, LOW);
@@ -166,22 +167,14 @@ void setup()
   
   Serial.println("INFO: Initialization ok, running.");
 
-  bool status;
-    
-  // Default settings
-  status = bme.begin(0x76);
-  if (!status){
-    Serial.println("Could not find a valid BME280 sensor, check wiring!");
-    while(1);
-  }
-
-  // Start RTC
+    // Start RTC
   rtc.begin();
   rtc.setTime(hours, minutes, seconds);
   rtc.setDate(day, month, year);
   rtc.setAlarmSeconds(00); // RTC time to wake, currently seconds only
   rtc.enableAlarm(rtc.MATCH_SS); // Match seconds on
 
+  loopcounter = 0;
 }
 
 char transmissionBuffer[256];
@@ -194,6 +187,8 @@ void loop()
 {  
   digitalWrite(LED, HIGH);
   Serial.println("INFO: Sending message!");   
+
+  measurements.loopCounter = loopcounter++;
   
   // Measure battery voltage.
   measuredvbat = analogRead(VBATPIN);
@@ -202,27 +197,48 @@ void loop()
   measuredvbat /= 1024; // convert to voltage
   measurements.battmV = measuredvbat * 1000;
 
-  // Get local air temp values.
-  measurements.airTemp = bme.readTemperature();
-  measurements.airPressureHpa = bme.readPressure() / 100.0F;
-  measurements.airHumidity = bme.readHumidity();
+  // Read bosch envsensor.
+  digitalWrite(BME280_GND, LOW);
+  digitalWrite(BME280_VCC, HIGH); 
+  delay(500); 
   
+  bool status;
+  Watchdog.enable(2000);
+  status = bme.begin(0x76);
+  if (!status){
+    Serial.println("Could not find a valid BME280 sensor, check wiring!");
+    measurements.airTemp = 0;
+    measurements.airPressureHpa = 0;
+    measurements.airHumidity = 0;
+  }
+  else{
+    // Get local air temp values.
+    measurements.airTemp = bme.readTemperature();
+    measurements.airPressureHpa = bme.readPressure() / 100.0F;
+    measurements.airHumidity = bme.readHumidity();
+  }
+  digitalWrite(BME280_VCC, LOW);   
+  Watchdog.reset();
+  Watchdog.disable();
+    
   // Read DS temp array.
   measurements.sensorCount = readTempArray(measurements.tempArray);
   Serial.println("Sensorscount: ");
   Serial.println(measurements.sensorCount);
   for(int i = 0; i < measurements.sensorCount; i++)
     Serial.println(measurements.tempArray[i]);
-  
+
   sendOk = manager.sendtoWait((uint8_t *)&measurements, sizeof(measurements), SERVER_ADDRESS);
   if(!sendOk){
     Serial.println("ERROR: Did not get ACK for message");   
   }
-
+  
   rf95.sleep();
   delay(1000);
+  
   digitalWrite(LED, LOW);
-  rtc.standbyMode();    // Sleep until next alarm match
+  delay(5000);
+  //rtc.standbyMode();    // Sleep until next alarm match
 }
 
 uint8_t readTempArray(float * arr){
@@ -325,4 +341,3 @@ void printValues() {
 
     Serial.println();
 }
-
