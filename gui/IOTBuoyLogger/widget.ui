@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>282</width>
-    <height>441</height>
+    <width>550</width>
+    <height>343</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,8 +16,8 @@
   <widget class="QPushButton" name="butConnect">
    <property name="geometry">
     <rect>
-     <x>10</x>
-     <y>400</y>
+     <x>280</x>
+     <y>290</y>
      <width>121</width>
      <height>23</height>
     </rect>
@@ -29,8 +29,8 @@
   <widget class="QComboBox" name="comboPorts">
    <property name="geometry">
     <rect>
-     <x>60</x>
-     <y>370</y>
+     <x>330</x>
+     <y>260</y>
      <width>81</width>
      <height>22</height>
     </rect>
@@ -39,8 +39,8 @@
   <widget class="QLabel" name="label">
    <property name="geometry">
     <rect>
-     <x>20</x>
-     <y>370</y>
+     <x>290</x>
+     <y>260</y>
      <width>47</width>
      <height>20</height>
     </rect>
@@ -53,7 +53,7 @@
    <property name="geometry">
     <rect>
      <x>150</x>
-     <y>100</y>
+     <y>130</y>
      <width>113</width>
      <height>20</height>
     </rect>
@@ -63,7 +63,7 @@
    <property name="geometry">
     <rect>
      <x>150</x>
-     <y>130</y>
+     <y>160</y>
      <width>113</width>
      <height>20</height>
     </rect>
@@ -73,7 +73,7 @@
    <property name="geometry">
     <rect>
      <x>150</x>
-     <y>160</y>
+     <y>190</y>
      <width>113</width>
      <height>20</height>
     </rect>
@@ -83,7 +83,7 @@
    <property name="geometry">
     <rect>
      <x>150</x>
-     <y>190</y>
+     <y>220</y>
      <width>113</width>
      <height>20</height>
     </rect>
@@ -93,7 +93,7 @@
    <property name="geometry">
     <rect>
      <x>150</x>
-     <y>220</y>
+     <y>250</y>
      <width>113</width>
      <height>20</height>
     </rect>
@@ -103,7 +103,7 @@
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>100</y>
+     <y>130</y>
      <width>121</width>
      <height>20</height>
     </rect>
@@ -116,7 +116,7 @@
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>130</y>
+     <y>160</y>
      <width>121</width>
      <height>20</height>
     </rect>
@@ -129,7 +129,7 @@
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>160</y>
+     <y>190</y>
      <width>121</width>
      <height>20</height>
     </rect>
@@ -142,7 +142,7 @@
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>190</y>
+     <y>220</y>
      <width>121</width>
      <height>20</height>
     </rect>
@@ -155,7 +155,7 @@
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>220</y>
+     <y>250</y>
      <width>101</width>
      <height>20</height>
     </rect>
@@ -167,8 +167,8 @@
   <widget class="QLineEdit" name="lineT1">
    <property name="geometry">
     <rect>
-     <x>150</x>
-     <y>250</y>
+     <x>90</x>
+     <y>280</y>
      <width>51</width>
      <height>20</height>
     </rect>
@@ -177,8 +177,8 @@
   <widget class="QLineEdit" name="lineT2">
    <property name="geometry">
     <rect>
-     <x>210</x>
-     <y>250</y>
+     <x>150</x>
+     <y>280</y>
      <width>51</width>
      <height>20</height>
     </rect>
@@ -187,7 +187,7 @@
   <widget class="QLineEdit" name="lineT3">
    <property name="geometry">
     <rect>
-     <x>20</x>
+     <x>210</x>
      <y>280</y>
      <width>51</width>
      <height>20</height>
@@ -197,8 +197,8 @@
   <widget class="QLineEdit" name="lineT4">
    <property name="geometry">
     <rect>
-     <x>80</x>
-     <y>280</y>
+     <x>210</x>
+     <y>310</y>
      <width>51</width>
      <height>20</height>
     </rect>
@@ -208,7 +208,7 @@
    <property name="geometry">
     <rect>
      <x>150</x>
-     <y>280</y>
+     <y>310</y>
      <width>51</width>
      <height>20</height>
     </rect>
@@ -218,7 +218,7 @@
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>250</y>
+     <y>280</y>
      <width>71</width>
      <height>21</height>
     </rect>
@@ -230,8 +230,8 @@
   <widget class="QCheckBox" name="checkLog">
    <property name="geometry">
     <rect>
-     <x>20</x>
-     <y>340</y>
+     <x>290</x>
+     <y>230</y>
      <width>101</width>
      <height>17</height>
     </rect>
@@ -243,8 +243,8 @@
   <widget class="QPushButton" name="butSelectFile">
    <property name="geometry">
     <rect>
-     <x>140</x>
-     <y>340</y>
+     <x>410</x>
+     <y>230</y>
      <width>121</width>
      <height>23</height>
     </rect>
@@ -256,8 +256,8 @@
   <widget class="QLabel" name="label_8">
    <property name="geometry">
     <rect>
-     <x>20</x>
-     <y>310</y>
+     <x>290</x>
+     <y>190</y>
      <width>81</width>
      <height>21</height>
     </rect>
@@ -269,8 +269,8 @@
   <widget class="QLineEdit" name="lineLastUpdate">
    <property name="geometry">
     <rect>
-     <x>120</x>
-     <y>310</y>
+     <x>390</x>
+     <y>190</y>
      <width>141</width>
      <height>20</height>
     </rect>
@@ -280,7 +280,7 @@
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>70</y>
+     <y>100</y>
      <width>121</width>
      <height>20</height>
     </rect>
@@ -306,7 +306,7 @@
    <property name="geometry">
     <rect>
      <x>150</x>
-     <y>70</y>
+     <y>100</y>
      <width>113</width>
      <height>20</height>
     </rect>
@@ -345,21 +345,11 @@
     <string>Select ID to monitor:</string>
    </property>
   </widget>
-  <widget class="QLineEdit" name="lineT6">
-   <property name="geometry">
-    <rect>
-     <x>210</x>
-     <y>280</y>
-     <width>51</width>
-     <height>20</height>
-    </rect>
-   </property>
-  </widget>
   <widget class="QRadioButton" name="radServer">
    <property name="geometry">
     <rect>
-     <x>150</x>
-     <y>370</y>
+     <x>420</x>
+     <y>260</y>
      <width>111</width>
      <height>21</height>
     </rect>
@@ -371,14 +361,152 @@
   <widget class="QPushButton" name="butDisconnect">
    <property name="geometry">
     <rect>
-     <x>140</x>
-     <y>400</y>
+     <x>410</x>
+     <y>290</y>
      <width>121</width>
      <height>23</height>
     </rect>
    </property>
    <property name="text">
     <string>Disconnect</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_12">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>70</y>
+     <width>121</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Measurement number</string>
+   </property>
+  </widget>
+  <widget class="QLineEdit" name="linemeasCount">
+   <property name="geometry">
+    <rect>
+     <x>150</x>
+     <y>70</y>
+     <width>113</width>
+     <height>20</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_13">
+   <property name="geometry">
+    <rect>
+     <x>290</x>
+     <y>40</y>
+     <width>121</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Wind Speed (avg kn)</string>
+   </property>
+  </widget>
+  <widget class="QLineEdit" name="lineWindSpeedAvg">
+   <property name="geometry">
+    <rect>
+     <x>420</x>
+     <y>40</y>
+     <width>113</width>
+     <height>20</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_14">
+   <property name="geometry">
+    <rect>
+     <x>290</x>
+     <y>70</y>
+     <width>121</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Wind Speed (max kn)</string>
+   </property>
+  </widget>
+  <widget class="QLineEdit" name="lineWindSpeedMax">
+   <property name="geometry">
+    <rect>
+     <x>420</x>
+     <y>70</y>
+     <width>113</width>
+     <height>20</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_15">
+   <property name="geometry">
+    <rect>
+     <x>290</x>
+     <y>100</y>
+     <width>121</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Wind Direction (deg)</string>
+   </property>
+  </widget>
+  <widget class="QLineEdit" name="lineWindDir">
+   <property name="geometry">
+    <rect>
+     <x>420</x>
+     <y>100</y>
+     <width>113</width>
+     <height>20</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_16">
+   <property name="geometry">
+    <rect>
+     <x>290</x>
+     <y>130</y>
+     <width>121</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Wind Direction Variance</string>
+   </property>
+  </widget>
+  <widget class="QLineEdit" name="lineWindDirVar">
+   <property name="geometry">
+    <rect>
+     <x>420</x>
+     <y>130</y>
+     <width>113</width>
+     <height>20</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_17">
+   <property name="geometry">
+    <rect>
+     <x>290</x>
+     <y>160</y>
+     <width>121</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Wave Height (cm)</string>
+   </property>
+  </widget>
+  <widget class="QLineEdit" name="lineWaveHeight">
+   <property name="geometry">
+    <rect>
+     <x>420</x>
+     <y>160</y>
+     <width>113</width>
+     <height>20</height>
+    </rect>
    </property>
   </widget>
  </widget>

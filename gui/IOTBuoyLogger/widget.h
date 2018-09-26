@@ -44,6 +44,7 @@ class Widget;
 
 typedef struct _measStruct{
   uint32_t dataVersion;
+  uint32_t loopCounter;
   uint32_t battmV;
   float measuredvbat;
   float airTemp;
@@ -51,6 +52,11 @@ typedef struct _measStruct{
   float airHumidity;
   uint32_t sensorCount;
   float tempArray[5];
+  float windSpeedAvg;
+  float windSpeedMax;
+  float windDirection;
+  float windDirectionVariance;
+  float waveHeight;
 }measStruct;
 
 #define dataStructVersion1 1

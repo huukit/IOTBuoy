@@ -114,10 +114,17 @@ void Widget::parse(){
                     ui->lineT4->setText(QString::number(mstr->tempArray[3]));
                     ui->lineT5->setText(QString::number(mstr->tempArray[4]));
 
+                    ui->lineWindSpeedAvg->setText(QString::number(mstr->windSpeedAvg));
+                    ui->lineWindSpeedMax->setText(QString::number(mstr->windSpeedMax));
+                    ui->lineWindDir->setText(QString::number(mstr->windDirection));
+                    ui->lineWindDirVar->setText(QString::number(mstr->windDirectionVariance));
+                    ui->lineWaveHeight->setText(QString::number(mstr->waveHeight));
+
                     ui->lineLastUpdate->setText(QDateTime::currentDateTime().toString());
 
                     ui->lineID->setText(QString::number(sender));
                     ui->lineRSSI->setText(QString::number(rssi));
+                    ui->linemeasCount->setText(QString::number(mstr->loopCounter));
                 }
                 if(log){
                     QTextStream logstream(&logFile);

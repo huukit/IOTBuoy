@@ -77,6 +77,7 @@ RHReliableDatagram manager(rf95, SERVER_ADDRESS);
 
 typedef struct _measStruct{
   const uint32_t dataVersion = dataStructVersion;
+  uint32_t loopCounter;
   uint32_t battmV;  
   float measuredvbat;
   float airTemp;
@@ -167,6 +168,10 @@ void setup()
   Serial.println(Ethernet.localIP());
 
   server.begin();
+
+  for(int i = 0; i < MAX_ADDRESSES; i++){
+    memset(&lastData[i], 0, sizeof(measStruct));
+  }
   
   Serial.println("INFO: Initialization ok, running.");
 }
@@ -180,11 +185,11 @@ void loop()
       if(sourceAddress < MAX_ADDRESSES){
         rssi[sourceAddress] = rf95.lastRssi();
         Serial.write("$$$$$");
-        Serial.write(receivedBytes + 2);
+        Serial.write(sizeof(measStruct) + 2);
         Serial.write(sourceAddress);
         Serial.write(rssi[sourceAddress]);
-        Serial.write(receptionBuffer, receivedBytes);
         memcpy((uint8_t *)&lastData[sourceAddress], receptionBuffer, receivedBytes);
+        Serial.write((uint8_t*)&lastData[sourceAddress], sizeof(measStruct));
       }
     }
   }
@@ -278,6 +283,3 @@ void loop()
     client.stop();
   }
 }
-
-
-
