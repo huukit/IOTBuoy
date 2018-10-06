@@ -219,7 +219,6 @@ void loop()
   }
   digitalWrite(BME280_VCC, LOW);   
   Watchdog.reset();
-  Watchdog.disable();
     
   // Read DS temp array.
   measurements.sensorCount = readTempArray(measurements.tempArray);
@@ -228,14 +227,16 @@ void loop()
   for(int i = 0; i < measurements.sensorCount; i++)
     Serial.println(measurements.tempArray[i]);
 
+  Watchdog.reset();
+  Watchdog.disable();
+
   sendOk = manager.sendtoWait((uint8_t *)&measurements, sizeof(measurements), SERVER_ADDRESS);
   if(!sendOk){
     Serial.println("ERROR: Did not get ACK for message");   
   }
   
   rf95.sleep();
-  delay(1000);
-  
+  delay(100);
   digitalWrite(LED, LOW);
   rtc.standbyMode();    // Sleep until next alarm match
 }
