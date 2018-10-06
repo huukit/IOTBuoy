@@ -237,8 +237,7 @@ void loop()
   delay(1000);
   
   digitalWrite(LED, LOW);
-  delay(5000);
-  //rtc.standbyMode();    // Sleep until next alarm match
+  rtc.standbyMode();    // Sleep until next alarm match
 }
 
 uint8_t readTempArray(float * arr){
