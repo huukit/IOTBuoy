@@ -26,10 +26,11 @@
  */
 
 #include <SPI.h>
-#include <Ethernet2.h>
 #include <RHReliableDatagram.h>
 #include <RH_RF95.h>
 
+#ifdef ETHERNET_ENABLED
+#include <Ethernet2.h>
 // Ethernet stuff.
 byte mac[] = { 0x98, 0x76, 0xB6, 0x10, 0x57, 0x75 };
 IPAddress ip(192, 168, 1, 60);
@@ -40,6 +41,7 @@ IPAddress subnet(255, 255, 255, 0);
 EthernetServer server(80);
 
 #define WIZ_CS 10
+#endif
 
 // Physical pins for radio.
 #define RFM95_CS      8
@@ -92,7 +94,7 @@ typedef struct _measStruct{
   float waveHeight;
 }measStruct;
 
-#define SERIALBUFFERLENGTH 256
+#define SERIALBUFFERLENGTH 512
 
 const uint8_t softwareVersionMajor = 0;
 const uint8_t softwareVersionMinor = 0;
@@ -106,7 +108,9 @@ uint8_t sourceAddress;
 measStruct lastData[MAX_ADDRESSES];
 int8_t rssi[MAX_ADDRESSES];  
 
+#ifdef ETHERNET_ENABLED
 EthernetClient client;
+#endif
 
 void setup() 
 {
@@ -160,7 +164,8 @@ void setup()
   }
   
   manager.setTimeout(5000);
-
+  
+#ifdef ETHERNET_ENABLED
   Serial.print("Initializing Ethernet.");
   Ethernet.init(WIZ_CS);
   Ethernet.begin(mac, ip, dnsServer, gateway, subnet);
@@ -168,6 +173,7 @@ void setup()
   Serial.println(Ethernet.localIP());
 
   server.begin();
+#endif
 
   for(int i = 0; i < MAX_ADDRESSES; i++){
     memset(&lastData[i], 0, sizeof(measStruct));
@@ -178,8 +184,7 @@ void setup()
 
 void loop()
 {
-  rf95.process();
- 
+
   if(manager.available()){
     if(manager.recvfromAck(receptionBuffer, &receivedBytes, &sourceAddress)){
       if(sourceAddress < MAX_ADDRESSES){
@@ -224,8 +229,8 @@ void loop()
     }
   }
 
-
-
+#ifdef ETHERNET_ENABLED
+  rf95.process();
   client = server.available();  
   // listen for incoming clients
   if (client) {
@@ -282,4 +287,6 @@ void loop()
     delay(1);
     client.stop();
   }
+  #endif
+  
 }
