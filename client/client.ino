@@ -108,6 +108,11 @@ typedef struct _measStruct{
   float airHumidity;
   uint32_t sensorCount;
   float tempArray[MAX_TEMP_SENSORS];
+  float windSpeedAvg;
+  float windSpeedMax;
+  float windDirection;
+  float windDirectionVariance;
+  float waveHeight;
   int32_t waterHeight;
 }measStruct;
 

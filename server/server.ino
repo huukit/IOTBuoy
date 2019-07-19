@@ -92,6 +92,7 @@ typedef struct _measStruct{
   float windDirection;
   float windDirectionVariance;
   float waveHeight;
+  int32_t waterheight;
 }measStruct;
 
 #define SERIALBUFFERLENGTH 512
@@ -287,6 +288,6 @@ void loop()
     delay(1);
     client.stop();
   }
-  #endif
+#endif
   
 }

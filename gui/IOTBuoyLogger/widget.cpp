@@ -120,6 +120,7 @@ void Widget::parse(){
                     ui->lineWindDirVar->setText(QString::number(mstr->windDirectionVariance));
                     ui->lineWaveHeight->setText(QString::number(mstr->waveHeight));
 
+                    ui->lineWaterHeight->setText(QString::number(mstr->waterHeight));
                     ui->lineLastUpdate->setText(QDateTime::currentDateTime().toString());
 
                     ui->lineID->setText(QString::number(sender));
@@ -185,8 +186,8 @@ void Widget::parse(){
                     }
                     else{
                         QSqlQuery query;
-                        query.prepare("INSERT INTO data (id, timestamp, rssi, batterymV, airTemp, airHumidity, airPressureHpa, waterArrayCount, waterTemp1, waterTemp2, waterTemp3, waterTemp4, waterTemp5) "
-                                      "VALUES (:id, :timestamp, :rssi, :batterymV, :airTemp, :airHumidity, :airPressureHpa, :waterArrayCount, :waterTemp1, :waterTemp2, :waterTemp3, :waterTemp4, :waterTemp5)");
+                        query.prepare("INSERT INTO data (id, timestamp, rssi, batterymV, airTemp, airHumidity, airPressureHpa, waterArrayCount, waterTemp1, waterTemp2, waterTemp3, waterTemp4, waterTemp5, waterHeight) "
+                                      "VALUES (:id, :timestamp, :rssi, :batterymV, :airTemp, :airHumidity, :airPressureHpa, :waterArrayCount, :waterTemp1, :waterTemp2, :waterTemp3, :waterTemp4, :waterTemp5, :waterHeight)");
                         query.bindValue(":id", sender);
                         query.bindValue(":timestamp", QDateTime::currentDateTime());
                         query.bindValue(":rssi", rssi);
@@ -200,6 +201,7 @@ void Widget::parse(){
                         query.bindValue(":waterTemp3", mstr->tempArray[2]);
                         query.bindValue(":waterTemp4", mstr->tempArray[3]);
                         query.bindValue(":waterTemp5", mstr->tempArray[4]);
+                        query.bindValue(":waterHeight", mstr->waterHeight);
                         bool ok = query.exec();
                         if(!ok)
                             qDebug() << query.lastError();

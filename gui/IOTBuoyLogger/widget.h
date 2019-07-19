@@ -57,6 +57,7 @@ typedef struct _measStruct{
   float windDirection;
   float windDirectionVariance;
   float waveHeight;
+  int32_t waterHeight;
 }measStruct;
 
 #define dataStructVersion1 1

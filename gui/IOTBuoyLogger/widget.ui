@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>550</width>
-    <height>343</height>
+    <height>365</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,7 +17,7 @@
    <property name="geometry">
     <rect>
      <x>280</x>
-     <y>290</y>
+     <y>320</y>
      <width>121</width>
      <height>23</height>
     </rect>
@@ -30,7 +30,7 @@
    <property name="geometry">
     <rect>
      <x>330</x>
-     <y>260</y>
+     <y>290</y>
      <width>81</width>
      <height>22</height>
     </rect>
@@ -40,7 +40,7 @@
    <property name="geometry">
     <rect>
      <x>290</x>
-     <y>260</y>
+     <y>290</y>
      <width>47</width>
      <height>20</height>
     </rect>
@@ -231,7 +231,7 @@
    <property name="geometry">
     <rect>
      <x>290</x>
-     <y>230</y>
+     <y>260</y>
      <width>101</width>
      <height>17</height>
     </rect>
@@ -244,7 +244,7 @@
    <property name="geometry">
     <rect>
      <x>410</x>
-     <y>230</y>
+     <y>260</y>
      <width>121</width>
      <height>23</height>
     </rect>
@@ -257,7 +257,7 @@
    <property name="geometry">
     <rect>
      <x>290</x>
-     <y>190</y>
+     <y>220</y>
      <width>81</width>
      <height>21</height>
     </rect>
@@ -270,7 +270,7 @@
    <property name="geometry">
     <rect>
      <x>390</x>
-     <y>190</y>
+     <y>220</y>
      <width>141</width>
      <height>20</height>
     </rect>
@@ -349,7 +349,7 @@
    <property name="geometry">
     <rect>
      <x>420</x>
-     <y>260</y>
+     <y>290</y>
      <width>111</width>
      <height>21</height>
     </rect>
@@ -362,7 +362,7 @@
    <property name="geometry">
     <rect>
      <x>410</x>
-     <y>290</y>
+     <y>320</y>
      <width>121</width>
      <height>23</height>
     </rect>
@@ -507,6 +507,29 @@
      <width>113</width>
      <height>20</height>
     </rect>
+   </property>
+  </widget>
+  <widget class="QLineEdit" name="lineWaterHeight">
+   <property name="geometry">
+    <rect>
+     <x>420</x>
+     <y>190</y>
+     <width>113</width>
+     <height>20</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_18">
+   <property name="geometry">
+    <rect>
+     <x>290</x>
+     <y>190</y>
+     <width>121</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Water Height (cm)</string>
    </property>
   </widget>
  </widget>
