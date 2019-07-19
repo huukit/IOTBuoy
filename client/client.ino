@@ -34,6 +34,7 @@
 #include <Wire.h>
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BME280.h>
+#include <Adafruit_BME680.h>
 
 #include <RTCZero.h>
 #include <Adafruit_SleepyDog.h>
@@ -51,7 +52,7 @@
 
 // Server end address.
 #define SERVER_ADDRESS 1
-#define CLIENT_ADDRESS 5
+#define CLIENT_ADDRESS 10
 
 // Radio driver and package manager.
 RH_RF95 rf95(RFM95_CS, RFM95_INT);
@@ -71,7 +72,9 @@ OneWire ds(DS_DATA);
 #define BME280_VCC 6
 #define BME280_GND 5
 
-Adafruit_BME280 bme;
+Adafruit_BME280 bme280;
+Adafruit_BME680 bme680;
+bool bme680status;
 
 // RTC sleep
 RTCZero rtc;
@@ -164,10 +167,22 @@ void setup()
     }
   }
   manager.setTimeout(5000);
+ 
+  bme680status = bme680.begin();
+  if(bme680status){
+    bme680.setTemperatureOversampling(BME680_OS_8X);
+    bme680.setHumidityOversampling(BME680_OS_2X);
+    bme680.setPressureOversampling(BME680_OS_4X);
+    bme680.setIIRFilterSize(BME680_FILTER_SIZE_3);
+    bme680.setGasHeater(320, 150); // 320*C for 150 ms
+  }
+  else{
+    Serial.println("INFO: Cannot find BME680 sensor.");  
+  }
   
   Serial.println("INFO: Initialization ok, running.");
 
-    // Start RTC
+  // Start RTC
   rtc.begin();
   rtc.setTime(hours, minutes, seconds);
   rtc.setDate(day, month, year);
@@ -204,18 +219,34 @@ void loop()
   
   bool status;
   Watchdog.enable(2000);
-  status = bme.begin(0x76);
+  status = bme280.begin(0x76);
+  
+  measurements.airTemp = 0;
+  measurements.airPressureHpa = 0;
+  measurements.airHumidity = 0;
+  
   if (!status){
-    Serial.println("Could not find a valid BME280 sensor, check wiring!");
-    measurements.airTemp = 0;
-    measurements.airPressureHpa = 0;
-    measurements.airHumidity = 0;
+    Serial.println("Could not find a valid BME280 sensor, checking for 680!");
+    if(bme680status){
+      Serial.println("Could not find a valid BME680 sensor, check wiring!"); 
+      if(bme680.performReading()){
+        measurements.airTemp = bme680.temperature;
+        measurements.airPressureHpa = bme680.pressure / 100.0F;
+        measurements.airHumidity = bme680.humidity;
+      }
+      else{
+        Serial.println("Could not read values for BME680!");
+      }
+    }
+    else{
+      Serial.println("Could not find BME680");  
+    } 
   }
   else{
     // Get local air temp values.
-    measurements.airTemp = bme.readTemperature();
-    measurements.airPressureHpa = bme.readPressure() / 100.0F;
-    measurements.airHumidity = bme.readHumidity();
+    measurements.airTemp = bme280.readTemperature();
+    measurements.airPressureHpa = bme280.readPressure() / 100.0F;
+    measurements.airHumidity = bme280.readHumidity();
   }
   digitalWrite(BME280_VCC, LOW);   
   Watchdog.reset();
@@ -323,12 +354,12 @@ uint8_t readTempArray(float * arr){
 
 void printValues() {
     Serial.print("Temperature = ");
-    Serial.print(bme.readTemperature());
+    Serial.print(bme280.readTemperature());
     Serial.println(" *C");
 
     Serial.print("Pressure = ");
 
-    Serial.print(bme.readPressure() / 100.0F);
+    Serial.print(bme280.readPressure() / 100.0F);
     Serial.println(" hPa");
 /*
     Serial.print("Approx. Altitude = ");
@@ -336,7 +367,7 @@ void printValues() {
     Serial.println(" m");
 */
     Serial.print("Humidity = ");
-    Serial.print(bme.readHumidity());
+    Serial.print(bme280.readHumidity());
     Serial.println(" %");
 
     Serial.println();
