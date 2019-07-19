@@ -228,7 +228,6 @@ void loop()
   if (!status){
     Serial.println("Could not find a valid BME280 sensor, checking for 680!");
     if(bme680status){
-      Serial.println("Could not find a valid BME680 sensor, check wiring!"); 
       if(bme680.performReading()){
         measurements.airTemp = bme680.temperature;
         measurements.airPressureHpa = bme680.pressure / 100.0F;
@@ -239,7 +238,7 @@ void loop()
       }
     }
     else{
-      Serial.println("Could not find BME680");  
+      Serial.println("Could not find a valid BME680 sensor, check wiring!"); 
     } 
   }
   else{
