@@ -129,7 +129,7 @@ void Widget::parse(){
                 }
             }
 
-            if(log){
+            if(log && sender != 0){
                 QTextStream logstream(&logFile);
                 logstream << QDateTime::currentDateTime().toString(Qt::DefaultLocaleLongDate) <<  ",";
                 logstream << QString::number(mstr->battmV) <<  ",";
