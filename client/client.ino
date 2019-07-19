@@ -36,6 +36,8 @@
 #include <Adafruit_BME280.h>
 #include <Adafruit_BME680.h>
 
+#include <SparkFun_VL53L1X_Arduino_Library.h>
+
 #include <RTCZero.h>
 #include <Adafruit_SleepyDog.h>
 
@@ -76,6 +78,10 @@ Adafruit_BME280 bme280;
 Adafruit_BME680 bme680;
 bool bme680status;
 
+// VL53L1X
+VL53L1X distanceSensor;
+#define VL53L1X_SLEEP 9
+
 // RTC sleep
 RTCZero rtc;
 const byte seconds = 0;
@@ -102,9 +108,58 @@ typedef struct _measStruct{
   float airHumidity;
   uint32_t sensorCount;
   float tempArray[MAX_TEMP_SENSORS];
+  int32_t waterHeight;
 }measStruct;
 
 uint32_t loopcounter;
+
+static const uint32_t wTableLength = 4;
+typedef struct _wTable{
+  uint32_t x[wTableLength];
+  int32_t y[wTableLength];
+  uint8_t axislen;
+}wTable;
+
+wTable waterLookup = {.x = {50, 80, 110, 150}, .y = {-500, 0, 500, 1000}, .axislen = wTableLength};
+
+// Get water height from sensor value.
+int32_t getWaterHeight(uint32_t sensorval){
+   
+  float x0 = 0, x1 = 0, y0 = 0, y1 = 0;
+  uint32_t Qx1 = 0, Qx2 = 0;
+  float xvalue = sensorval;
+    
+  // If we are lower than the scale.
+  if(xvalue <= waterLookup.x[0]){
+    return waterLookup.y[0];
+  }
+
+  // Over the scale.    
+  if(xvalue >= waterLookup.x[waterLookup.axislen - 1]){
+    return waterLookup.y[waterLookup.axislen - 1];
+  }
+    
+  // Find the correct x1,2 and y1,2
+  for(uint32_t i = 0; i <waterLookup.axislen; i++){
+    if((xvalue >= waterLookup.x[i] && xvalue < waterLookup.x[i + 1]) || xvalue < waterLookup.x[0]){
+      x0 = waterLookup.x[i];
+      Qx1 = i;
+      x1 = waterLookup.x[i + 1];
+      Qx2 = i+1;
+      break;
+    }
+  }
+
+  y0 = waterLookup.y[Qx1];
+  y1 = waterLookup.y[Qx2];
+
+  // If line is straight.
+  if(y0 == y1){
+    return y0;
+  }
+  
+  return y0 + (xvalue - x0) * ((y1 - y0)/(x1 - x0));
+}
 
 void setup() 
 {
@@ -116,6 +171,8 @@ void setup()
 
   pinMode(BME280_GND, OUTPUT);
   pinMode(BME280_VCC, OUTPUT);
+  
+  pinMode(VL53L1X_SLEEP, OUTPUT);
   
   digitalWrite(DS_GND, LOW);
 
@@ -257,6 +314,20 @@ void loop()
   for(int i = 0; i < measurements.sensorCount; i++)
     Serial.println(measurements.tempArray[i]);
 
+  // Read water height (if available);
+  digitalWrite(VL53L1X_SLEEP, HIGH);
+  // Get waterheight if available.
+  if(distanceSensor.begin()){
+    distanceSensor.setDistanceMode(2);
+    //Poll for completion of measurement. Takes 40-50ms.
+    while (distanceSensor.newDataReady() == false)
+      delay(5);
+
+    int distance = distanceSensor.getDistance(); //Get the result of the measurement from the sensor
+    measurements.waterHeight = getWaterHeight(distance);
+  }
+  digitalWrite(VL53L1X_SLEEP, LOW);
+  
   Watchdog.reset();
   Watchdog.disable();
 
