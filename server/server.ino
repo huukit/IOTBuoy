@@ -29,8 +29,10 @@
 #include <RHReliableDatagram.h>
 #include <RH_RF95.h>
 
+#define ETHERNET_ENABLED
+
 #ifdef ETHERNET_ENABLED
-#include <Ethernet2.h>
+#include <Ethernet.h>
 // Ethernet stuff.
 byte mac[] = { 0x98, 0x76, 0xB6, 0x10, 0x57, 0x75 };
 IPAddress ip(192, 168, 1, 60);
@@ -57,6 +59,7 @@ EthernetServer server(80);
 // Server end address.
 #define MAX_ADDRESSES 16
 #define SERVER_ADDRESS 1
+#define BOOT_CLIENT_ADDRESS 2
 
 // Radio driver and package manager.
 RH_RF95 rf95(RFM95_CS, RFM95_INT);
@@ -77,9 +80,12 @@ RHReliableDatagram manager(rf95, SERVER_ADDRESS);
 #define deviceVersion 0x76
 #define invalidRequest 0xF0
 
+typedef enum {kInitial = 0x00, kRunning = 0x01} nodeStates;
+
 typedef struct _measStruct{
   const uint32_t dataVersion = dataStructVersion;
   uint32_t loopCounter;
+  nodeStates nodeState;
   uint32_t battmV;  
   float measuredvbat;
   float airTemp;
@@ -112,6 +118,7 @@ int8_t rssi[MAX_ADDRESSES];
 #ifdef ETHERNET_ENABLED
 EthernetClient client;
 #endif
+
 
 void setup() 
 {
@@ -178,6 +185,7 @@ void setup()
 
   for(int i = 0; i < MAX_ADDRESSES; i++){
     memset(&lastData[i], 0, sizeof(measStruct));
+    memset(&rssi[i], 0, sizeof(int8_t));
   }
   
   Serial.println("INFO: Initialization ok, running.");
@@ -196,6 +204,16 @@ void loop()
         Serial.write(rssi[sourceAddress]);
         memcpy((uint8_t *)&lastData[sourceAddress], receptionBuffer, receivedBytes);
         Serial.write((uint8_t*)&lastData[sourceAddress], sizeof(measStruct));
+      }
+    }
+    if(sourceAddress == BOOT_CLIENT_ADDRESS || lastData[sourceAddress].nodeState == kInitial){
+      uint8_t i;
+      for(i = BOOT_CLIENT_ADDRESS + 1; i < MAX_ADDRESSES; i++){
+        if(rssi[i] == 0)break;
+      }
+      bool sendOk = manager.sendtoWait((uint8_t *)&i, sizeof(uint8_t), sourceAddress);
+      if(!sendOk){
+        Serial.println("ERROR: Did not get ACK for message");   
       }
     }
   }
@@ -256,6 +274,7 @@ void loop()
             client.println(i);
             client.println(rssi[i]);
             client.println(lastData[i].dataVersion);
+            client.println(lastData[i].loopCounter);
             client.println(lastData[i].battmV);
             client.println(lastData[i].airTemp);
             client.println(lastData[i].airPressureHpa);

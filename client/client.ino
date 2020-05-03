@@ -39,6 +39,8 @@
 #include <RTCZero.h>
 #include <Adafruit_SleepyDog.h>
 
+#include <FlashStorage.h>
+
 // Physical pins for radio.
 #define RFM95_CS      8
 #define RFM95_INT     3
@@ -52,11 +54,11 @@
 
 // Server end address.
 #define SERVER_ADDRESS 1
-#define CLIENT_ADDRESS 10
+#define BOOT_CLIENT_ADDRESS 2
 
 // Radio driver and package manager.
 RH_RF95 rf95(RFM95_CS, RFM95_INT);
-RHReliableDatagram manager(rf95, CLIENT_ADDRESS);
+RHReliableDatagram manager(rf95, BOOT_CLIENT_ADDRESS);
 
 // Battery voltage.
 #define VBATPIN A7
@@ -92,9 +94,12 @@ uint8_t readTempArray(float * arr);
 // Structure with the measurements.
 #define dataStructVersion 1
 
+typedef enum {kInitial = 0x00, kRunning = 0x01} nodeStates;
+
 typedef struct _measStruct{
   const uint32_t dataVersion = dataStructVersion;
   uint32_t loopCounter;
+  nodeStates nodeState;
   uint32_t battmV;  
   float measuredvbat;
   float airTemp;
@@ -111,54 +116,9 @@ typedef struct _measStruct{
 }measStruct;
 
 uint32_t loopcounter;
+uint8_t clientAddress;
 
-static const uint32_t wTableLength = 4;
-typedef struct _wTable{
-  uint32_t x[wTableLength];
-  int32_t y[wTableLength];
-  uint8_t axislen;
-}wTable;
-
-wTable waterLookup = {.x = {50, 80, 110, 150}, .y = {-500, 0, 500, 1000}, .axislen = wTableLength};
-
-// Get water height from sensor value.
-int32_t getWaterHeight(uint32_t sensorval){
-   
-  float x0 = 0, x1 = 0, y0 = 0, y1 = 0;
-  uint32_t Qx1 = 0, Qx2 = 0;
-  float xvalue = sensorval;
-    
-  // If we are lower than the scale.
-  if(xvalue <= waterLookup.x[0]){
-    return waterLookup.y[0];
-  }
-
-  // Over the scale.    
-  if(xvalue >= waterLookup.x[waterLookup.axislen - 1]){
-    return waterLookup.y[waterLookup.axislen - 1];
-  }
-    
-  // Find the correct x1,2 and y1,2
-  for(uint32_t i = 0; i <waterLookup.axislen; i++){
-    if((xvalue >= waterLookup.x[i] && xvalue < waterLookup.x[i + 1]) || xvalue < waterLookup.x[0]){
-      x0 = waterLookup.x[i];
-      Qx1 = i;
-      x1 = waterLookup.x[i + 1];
-      Qx2 = i+1;
-      break;
-    }
-  }
-
-  y0 = waterLookup.y[Qx1];
-  y1 = waterLookup.y[Qx2];
-
-  // If line is straight.
-  if(y0 == y1){
-    return y0;
-  }
-  
-  return y0 + (xvalue - x0) * ((y1 - y0)/(x1 - x0));
-}
+FlashStorage(addr_storage, uint8_t);
 
 void setup() 
 {
@@ -178,7 +138,7 @@ void setup()
   digitalWrite(LED, LOW);
   
   // Init serial.
-  // while (!Serial);
+  while (!Serial);
   Serial.begin(115200);
   delay(100);
 
@@ -244,6 +204,9 @@ void setup()
   rtc.enableAlarm(rtc.MATCH_SS); // Match seconds on
 
   loopcounter = 0;
+
+  clientAddress = BOOT_CLIENT_ADDRESS;
+  
 }
 
 char transmissionBuffer[256];
@@ -252,8 +215,16 @@ bool sendOk;
 float measuredvbat; 
 measStruct measurements;
   
-void loop()
-{  
+void loop(){ 
+  if((addr_storage.read() == 255)){
+    // Request node address allocation from server.
+    measurements.nodeState = kInitial;
+  }
+  else{
+    measurements.nodeState = kRunning;
+    clientAddress = addr_storage.read();
+    manager.setThisAddress(clientAddress);
+  }
   digitalWrite(LED, HIGH);
   Serial.println("INFO: Sending message!");   
 
@@ -318,11 +289,39 @@ void loop()
   if(!sendOk){
     Serial.println("ERROR: Did not get ACK for message");   
   }
+
+  // Expect address allocation from master.
+  if(measurements.nodeState == kInitial){
+    uint8_t receptionBuffer[RH_RF95_MAX_MESSAGE_LEN];
+    uint8_t receivedBytes = RH_RF95_MAX_MESSAGE_LEN;
+    uint8_t sourceAddress;
+    uint8_t count = 0;
+    bool avail = false;
+
+    while(!avail && count < 10){
+      count++;
+      avail = manager.available();
+      Serial.println("Waiting for address from master server.");   
+      delay(500);
+    }
+    if(avail){
+      if(manager.recvfromAck(receptionBuffer, &receivedBytes, &sourceAddress)){
+        if(sourceAddress == SERVER_ADDRESS){
+          clientAddress = receptionBuffer[0];
+          addr_storage.write(clientAddress);
+          Serial.println("Address allocation ok, binding.");   
+        }
+      } 
+    }  
+    else{
+      Serial.println("No allocation, retry");   
+    }
+  }
   
   rf95.sleep();
-  delay(100);
+  delay(1000);
   digitalWrite(LED, LOW);
-  rtc.standbyMode();    // Sleep until next alarm match
+  if(measurements.nodeState = kRunning)rtc.standbyMode();    // Sleep until next alarm match
 }
 
 uint8_t readTempArray(float * arr){
