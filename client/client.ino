@@ -138,7 +138,7 @@ void setup()
   digitalWrite(LED, LOW);
   
   // Init serial.
-  while (!Serial);
+  //while (!Serial);
   Serial.begin(115200);
   delay(100);
 
@@ -216,7 +216,7 @@ float measuredvbat;
 measStruct measurements;
   
 void loop(){ 
-  if((addr_storage.read() == 255)){
+  if((addr_storage.read() == 255 || addr_storage.read() == 0)){
     // Request node address allocation from server.
     measurements.nodeState = kInitial;
   }
