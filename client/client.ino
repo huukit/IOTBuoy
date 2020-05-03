@@ -1,4 +1,4 @@
-/*
+ /*
  * <copyright>
  * Copyright (c) 2016: Tuomas Huuki
  *
@@ -35,8 +35,6 @@
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BME280.h>
 #include <Adafruit_BME680.h>
-
-#include <SparkFun_VL53L1X_Arduino_Library.h>
 
 #include <RTCZero.h>
 #include <Adafruit_SleepyDog.h>
@@ -77,10 +75,6 @@ OneWire ds(DS_DATA);
 Adafruit_BME280 bme280;
 Adafruit_BME680 bme680;
 bool bme680status;
-
-// VL53L1X
-VL53L1X distanceSensor;
-#define VL53L1X_SLEEP 9
 
 // RTC sleep
 RTCZero rtc;
@@ -176,9 +170,7 @@ void setup()
 
   pinMode(BME280_GND, OUTPUT);
   pinMode(BME280_VCC, OUTPUT);
-  
-  pinMode(VL53L1X_SLEEP, OUTPUT);
-  
+    
   digitalWrite(DS_GND, LOW);
 
   digitalWrite(RFM95_RST, HIGH);
@@ -186,7 +178,7 @@ void setup()
   digitalWrite(LED, LOW);
   
   // Init serial.
-  //while (!Serial);
+  // while (!Serial);
   Serial.begin(115200);
   delay(100);
 
@@ -318,20 +310,6 @@ void loop()
   Serial.println(measurements.sensorCount);
   for(int i = 0; i < measurements.sensorCount; i++)
     Serial.println(measurements.tempArray[i]);
-
-  // Read water height (if available);
-  digitalWrite(VL53L1X_SLEEP, HIGH);
-  // Get waterheight if available.
-  if(distanceSensor.begin()){
-    distanceSensor.setDistanceMode(2);
-    //Poll for completion of measurement. Takes 40-50ms.
-    while (distanceSensor.newDataReady() == false)
-      delay(5);
-
-    int distance = distanceSensor.getDistance(); //Get the result of the measurement from the sensor
-    measurements.waterHeight = getWaterHeight(distance);
-  }
-  digitalWrite(VL53L1X_SLEEP, LOW);
   
   Watchdog.reset();
   Watchdog.disable();
