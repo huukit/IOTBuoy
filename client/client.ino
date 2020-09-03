@@ -181,7 +181,9 @@ void setup()
     }
   }
   manager.setTimeout(5000);
- 
+
+  // No power enable required for BME680, it needs to be directly powered,
+  // as the feather cannot supply enough through the pin.
   bme680status = bme680.begin();
   if(bme680status){
     bme680.setTemperatureOversampling(BME680_OS_8X);
