@@ -131,7 +131,7 @@ void Widget::parse(){
 
             if(log && sender != 0){
                 QTextStream logstream(&logFile);
-                logstream << QDateTime::currentDateTime().toString(Qt::DefaultLocaleLongDate) <<  ",";
+                logstream << QDateTime::currentDateTime().toString() <<  ",";
                 logstream << QString::number(mstr->battmV) <<  ",";
 
                 logstream << QString::number(mstr->airTemp) <<  ",";
@@ -142,7 +142,7 @@ void Widget::parse(){
                     logstream << QString::number(mstr->tempArray[i]) <<  ",";
                 }
                 logstream << QString::number(mstr->waterHeight);
-                logstream << endl;
+                logstream << Qt::endl;
 
                 // Let's generate a html page.
                 QFile htmlFile;
@@ -157,23 +157,23 @@ void Widget::parse(){
                 }
                 else{
                     QTextStream htmlStream(&htmlFile);
-                    htmlStream << "<html><head><meta http-equiv=\"refresh\" content=\"30\"><title>IOTBuoy</title></head><body>" << endl;
-                    htmlStream << "Buoy id: " << QString::number(sender) <<  "<br>" << endl;;
-                    htmlStream << "RSSI: " << QString::number(rssi) << "dB" <<  "<br>" << endl;
-                    htmlStream << "Date: " << QDateTime::currentDateTime().toString(Qt::DefaultLocaleLongDate) <<  "<br>" << endl;
-                    htmlStream << "Battery voltage: " << QString::number(mstr->battmV) <<  "mV <br>" << endl;
-                    htmlStream << "<b>Data: </b><br>" << endl;
-                    htmlStream << "Air temp: " << QString::number(mstr->airTemp) <<  "C <br>" << endl;
-                    htmlStream << "Air pressure: " << QString::number(mstr->airPressureHpa) <<  "hPa <br>" << endl;
-                    htmlStream << "Air humidity: " << QString::number(mstr->airHumidity) <<  "\% <br>" << endl;
-                    htmlStream << "Water temp array: <br>" << endl;
+                    htmlStream << "<html><head><meta http-equiv=\"refresh\" content=\"30\"><title>IOTBuoy</title></head><body>" << Qt::endl;
+                    htmlStream << "Buoy id: " << QString::number(sender) <<  "<br>" << Qt::endl;;
+                    htmlStream << "RSSI: " << QString::number(rssi) << "dB" <<  "<br>" << Qt::endl;
+                    htmlStream << "Date: " << QDateTime::currentDateTime().toString() <<  "<br>" << Qt::endl;
+                    htmlStream << "Battery voltage: " << QString::number(mstr->battmV) <<  "mV <br>" << Qt::endl;
+                    htmlStream << "<b>Data: </b><br>" << Qt::endl;
+                    htmlStream << "Air temp: " << QString::number(mstr->airTemp) <<  "C <br>" << Qt::endl;
+                    htmlStream << "Air pressure: " << QString::number(mstr->airPressureHpa) <<  "hPa <br>" << Qt::endl;
+                    htmlStream << "Air humidity: " << QString::number(mstr->airHumidity) <<  "\% <br>" << Qt::endl;
+                    htmlStream << "Water temp array: <br>" << Qt::endl;
 
                     for(int i = 0; i < mstr->sensorCount; i++){
-                        htmlStream << QString::number(i) << ": " << QString::number(mstr->tempArray[i]) <<  "C <br>" << endl;
+                        htmlStream << QString::number(i) << ": " << QString::number(mstr->tempArray[i]) <<  "C <br>" << Qt::endl;
                     }
-                    htmlStream << "Water height: " << QString::number(mstr->waterHeight) <<  "cm <br>" << endl;
+                    htmlStream << "Water height: " << QString::number(mstr->waterHeight) <<  "cm <br>" << Qt::endl;
 
-                    htmlStream << "</body></html>" << endl;
+                    htmlStream << "</body></html>" << Qt::endl;
                 }
 
                 // Also save to db.
@@ -241,7 +241,7 @@ void Widget::on_checkLog_stateChanged(int arg1)
         }
         else{
             QTextStream logStream(&logFile);
-            logStream << "date,battmV,temp,press,rh,water1,water2" << endl;
+            logStream << "date,battmV,temp,press,rh,water1,water2" << Qt::endl;
             log = true;
         }
     }
@@ -264,9 +264,13 @@ void Widget::on_butConnect_clicked()
     sport.setPortName(ui->comboPorts->currentText());
     sport.setBaudRate(QSerialPort::Baud115200);
 
+
     if (!sport.open(QIODevice::ReadWrite)) {
-        qDebug() << QObject::tr("Failed to open port %1, error: %2").arg(ui->comboPorts->currentText()).arg(sport.errorString()) << endl;
+        qDebug() << QObject::tr("Failed to open port %1, error: %2").arg(ui->comboPorts->currentText()).arg(sport.errorString()) << Qt::endl;
     }
+
+    // This is needed for the latest arduino libraries to communicate..
+    sport.setDataTerminalReady(true);
 
     connect(&sport, SIGNAL(readyRead()), this, SLOT(handleReadyRead()));
     connect(&connectionTimer, SIGNAL(timeout()), this, SLOT(sendVersionRequest()));
